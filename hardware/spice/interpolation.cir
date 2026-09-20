@@ -1,0 +1,33 @@
+* BlendStep — interpolation law check (ngspice)
+* Mix of 1 Vpeak tones 1 dB apart. Print mixed dB versus k.
+*
+* Run: ngspice -b interpolation.cir
+
+.param pi = 3.141592653589793
+.param att_a = 10
+.param att_b = 11
+.param k = 0.5
+.param ga = {10**(-att_a/20)}
+.param gb = {10**(-att_b/20)}
+
+Vin a 0 SIN(0 1 1000)
+Ea  outa 0 a 0 {ga}
+Eb  outb 0 a 0 {gb}
+Emix mix 0 vol='(1-k)*v(outa) + k*v(outb)'
+
+.control
+  let ks = 0
+  echo  k     mixed_dB     error_vs_k
+  dowhile ks <= 1.001
+    alterparam k = $&ks
+    reset
+    tran 20u 5m
+    meas tran vrms RMS v(mix) from=1m to=5m
+    let mixdb = -20 * log10(vrms * sqrt(2))
+    let ideal = 10 + ks
+    echo  {$&ks}  {$&mixdb}  {$&(mixdb-ideal)}
+    let ks = ks + 0.1
+  end
+.endc
+
+.end

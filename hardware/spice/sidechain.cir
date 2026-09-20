@@ -1,0 +1,43 @@
+* BlendStep — behavioral sidechain (ngspice)
+* Precision-rectifier + RC attack/release + log + hard-knee law.
+* This is a behavioral check of time constants, not a full transistor log amp.
+*
+* Run: ngspice -b sidechain.cir
+
+.param tau_att = 10m
+.param tau_rel = 200m
+.param thresh_db = -12
+.param ratio = 4
+.param max_gr = 24
+.param volts_per_db = 0.1
+
+* 1 kHz burst, 100 mV then 1 V peak
+Vin in 0 PWL(0 0 1m 0 1.01m 0.1 40m 0.1 40.01m 1 80m 1)
+
+* Ideal full-wave rectify
+Erect rect 0 vol='abs(v(in))'
+
+* Attack/release: charge via tatt, discharge via trel
+Ratt rect env {tau_att/1u}
+Cenv env 0 1u
+Rrel env 0 {tau_rel/1u}
+Dfwd rect mid Dclamp
+Ratt2 mid env 1k
+Cenv2 env 0 1u IC=0
+Rrel2 env 0 {tau_rel/1u}
+
+.model Dclamp D(Is=1n N=1)
+
+* Log: 0 dB at 0.1 V, 100 mV/dB
+Edb db 0 vol='20*log10(max(v(env),1m)/0.1) * volts_per_db'
+
+* Excess and ratio
+Eex  ex 0 vol='max(v(db) - thresh_db*volts_per_db, 0)'
+Egr  gr 0 vol='min((1-1/ratio)*v(ex), max_gr*volts_per_db)'
+
+.control
+  tran 50u 80m
+  print v(in) v(env) v(db) v(gr)
+.endc
+
+.end
