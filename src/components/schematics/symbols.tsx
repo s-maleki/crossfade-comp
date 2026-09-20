@@ -18,12 +18,12 @@ export function SchematicFrame({
       <figcaption className="flex items-center justify-between gap-3 border-b border-[#1c1916]/15 px-3 py-1.5 font-mono text-[10px] tracking-wider uppercase">
         <span>BlendStep · {dwg}</span>
         <span className="truncate text-center">{title}</span>
-        <span>Rev A</span>
+        <span>Rev B</span>
       </figcaption>
       <div className="overflow-x-auto">
         <svg
           viewBox={viewBox}
-          className="h-auto w-full min-w-[720px]"
+          className="h-auto w-full min-w-[860px]"
           role="img"
           aria-label={title}
         >
@@ -40,28 +40,30 @@ export function SchematicFrame({
 }
 
 export const ink = "#1f1b16";
-export const dim = "#6a6256";
-export const hi = "#9a4b12";
-export const teal = "#0f5f56";
 
-export function Label({
+export function Txt({
   x,
   y,
   children,
   anchor = "start",
+  size = 11,
+  weight = "normal",
 }: {
   x: number;
   y: number;
   children: string;
   anchor?: "start" | "middle" | "end";
+  size?: number;
+  weight?: "normal" | "bold";
 }) {
   return (
     <text
       x={x}
       y={y}
       fill={ink}
-      fontFamily="ui-monospace, SFMono-Regular, monospace"
-      fontSize="11"
+      fontFamily="ui-monospace, SFMono-Regular, Menlo, monospace"
+      fontSize={size}
+      fontWeight={weight}
       textAnchor={anchor}
     >
       {children}
@@ -76,24 +78,25 @@ export function Wire({
   d: string;
   color?: string;
 }) {
-  return <path d={d} fill="none" stroke={color} strokeWidth="1.6" />;
+  return <path d={d} fill="none" stroke={color} strokeWidth="1.5" />;
 }
 
 export function Dot({ x, y }: { x: number; y: number }) {
-  return <circle cx={x} cy={y} r="2.4" fill={ink} />;
+  return <circle cx={x} cy={y} r="2.3" fill={ink} />;
 }
 
 export function Gnd({ x, y }: { x: number; y: number }) {
   return (
     <g>
-      <path d={`M ${x} ${y} v 8`} stroke={ink} strokeWidth="1.6" />
-      <path d={`M ${x - 10} ${y + 8} h 20`} stroke={ink} strokeWidth="1.6" />
-      <path d={`M ${x - 6} ${y + 12} h 12`} stroke={ink} strokeWidth="1.6" />
-      <path d={`M ${x - 3} ${y + 16} h 6`} stroke={ink} strokeWidth="1.6" />
+      <path d={`M ${x} ${y} v 7`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${x - 9} ${y + 7} h 18`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${x - 6} ${y + 11} h 12`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${x - 3} ${y + 15} h 6`} stroke={ink} strokeWidth="1.5" />
     </g>
   );
 }
 
+/** Horizontal resistor. Zigzag is 48 px, centered between x1 and x2. */
 export function ResistorH({
   x1,
   x2,
@@ -108,19 +111,20 @@ export function ResistorH({
   value: string;
 }) {
   const mid = (x1 + x2) / 2;
+  const z = 24;
   return (
     <g>
-      <path d={`M ${x1} ${y} H ${mid - 22}`} stroke={ink} strokeWidth="1.6" />
+      <path d={`M ${x1} ${y} H ${mid - z}`} stroke={ink} strokeWidth="1.5" />
       <path
-        d={`M ${mid - 22} ${y} l 4 -8 7 16 7 -16 7 16 7 -16 4 8`}
+        d={`M ${mid - z} ${y} l 8 -7 8 14 8 -14 8 14 8 -14 8 7`}
         fill="none"
         stroke={ink}
-        strokeWidth="1.6"
+        strokeWidth="1.5"
       />
-      <path d={`M ${mid + 22} ${y} H ${x2}`} stroke={ink} strokeWidth="1.6" />
-      <Label x={mid} y={y - 12} anchor="middle">
+      <path d={`M ${mid + z} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
+      <Txt x={mid} y={y - 12} anchor="middle">
         {`${refDes} ${value}`}
-      </Label>
+      </Txt>
     </g>
   );
 }
@@ -139,19 +143,20 @@ export function ResistorV({
   value: string;
 }) {
   const mid = (y1 + y2) / 2;
+  const z = 24;
   return (
     <g>
-      <path d={`M ${x} ${y1} V ${mid - 22}`} stroke={ink} strokeWidth="1.6" />
+      <path d={`M ${x} ${y1} V ${mid - z}`} stroke={ink} strokeWidth="1.5" />
       <path
-        d={`M ${x} ${mid - 22} l -8 4 16 7 -16 7 16 7 -16 7 8 4`}
+        d={`M ${x} ${mid - z} l -7 8 14 8 -14 8 14 8 -14 8 7 8`}
         fill="none"
         stroke={ink}
-        strokeWidth="1.6"
+        strokeWidth="1.5"
       />
-      <path d={`M ${x} ${mid + 22} V ${y2}`} stroke={ink} strokeWidth="1.6" />
-      <Label x={x + 10} y={mid + 4}>
+      <path d={`M ${x} ${mid + z} V ${y2}`} stroke={ink} strokeWidth="1.5" />
+      <Txt x={x + 12} y={mid + 4}>
         {`${refDes} ${value}`}
-      </Label>
+      </Txt>
     </g>
   );
 }
@@ -172,13 +177,13 @@ export function CapH({
   const mid = (x1 + x2) / 2;
   return (
     <g>
-      <path d={`M ${x1} ${y} H ${mid - 6}`} stroke={ink} strokeWidth="1.6" />
-      <path d={`M ${mid - 6} ${y - 12} v 24`} stroke={ink} strokeWidth="1.8" />
-      <path d={`M ${mid + 6} ${y - 12} v 24`} stroke={ink} strokeWidth="1.8" />
-      <path d={`M ${mid + 6} ${y} H ${x2}`} stroke={ink} strokeWidth="1.6" />
-      <Label x={mid} y={y - 16} anchor="middle">
+      <path d={`M ${x1} ${y} H ${mid - 5}`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${mid - 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
+      <path d={`M ${mid + 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
+      <path d={`M ${mid + 5} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
+      <Txt x={mid} y={y - 16} anchor="middle">
         {`${refDes} ${value}`}
-      </Label>
+      </Txt>
     </g>
   );
 }
@@ -199,75 +204,49 @@ export function CapV({
   const mid = (y1 + y2) / 2;
   return (
     <g>
-      <path d={`M ${x} ${y1} V ${mid - 6}`} stroke={ink} strokeWidth="1.6" />
-      <path d={`M ${x - 12} ${mid - 6} h 24`} stroke={ink} strokeWidth="1.8" />
-      <path d={`M ${x - 12} ${mid + 6} h 24`} stroke={ink} strokeWidth="1.8" />
-      <path d={`M ${x} ${mid + 6} V ${y2}`} stroke={ink} strokeWidth="1.6" />
-      <Label x={x + 16} y={mid + 4}>
+      <path d={`M ${x} ${y1} V ${mid - 5}`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${x - 11} ${mid - 5} h 22`} stroke={ink} strokeWidth="1.8" />
+      <path d={`M ${x - 11} ${mid + 5} h 22`} stroke={ink} strokeWidth="1.8" />
+      <path d={`M ${x} ${mid + 5} V ${y2}`} stroke={ink} strokeWidth="1.5" />
+      <Txt x={x + 14} y={mid + 4}>
         {`${refDes} ${value}`}
-      </Label>
+      </Txt>
     </g>
   );
 }
 
+/**
+ * Op-amp pointing right.
+ * Non-inverting input: (x, y - 16)
+ * Inverting input:     (x, y + 16)
+ * Output:              (x + 64, y)
+ */
 export function OpAmp({
   x,
   y,
   name,
-  flip = false,
 }: {
   x: number;
   y: number;
   name: string;
-  flip?: boolean;
 }) {
-  const tri = flip
-    ? `${x},${y} ${x - 70},${y - 36} ${x - 70},${y + 36}`
-    : `${x},${y} ${x + 70},${y - 36} ${x + 70},${y + 36}`;
-  const plusX = flip ? x - 18 : x + 14;
-  const minusX = plusX;
   return (
     <g>
       <polygon
-        points={tri}
+        points={`${x},${y - 32} ${x},${y + 32} ${x + 64},${y}`}
         fill="#f7f1e4"
         stroke={ink}
-        strokeWidth="1.6"
+        strokeWidth="1.5"
       />
-      <text x={plusX} y={y - 12} fontSize="12" fill={ink}>
+      <text x={x + 8} y={y - 10} fontSize="13" fill={ink}>
         +
       </text>
-      <text x={minusX} y={y + 18} fontSize="14" fill={ink}>
+      <text x={x + 9} y={y + 20} fontSize="14" fill={ink}>
         −
       </text>
-      <Label x={flip ? x - 48 : x + 22} y={y + 4}>
+      <Txt x={x + 28} y={y + 4} size={10}>
         {name}
-      </Label>
-    </g>
-  );
-}
-
-export function PotV({
-  x,
-  y1,
-  y2,
-  refDes,
-  value,
-}: {
-  x: number;
-  y1: number;
-  y2: number;
-  refDes: string;
-  value: string;
-}) {
-  const mid = (y1 + y2) / 2;
-  return (
-    <g>
-      <ResistorV x={x} y1={y1} y2={y2} refDes={refDes} value={value} />
-      <path
-        d={`M ${x + 26} ${mid} l -10 -5 0 10 z`}
-        fill={ink}
-      />
+      </Txt>
     </g>
   );
 }
@@ -286,18 +265,18 @@ export function DiodeH({
   const mid = (x1 + x2) / 2;
   return (
     <g>
-      <path d={`M ${x1} ${y} H ${mid - 10}`} stroke={ink} strokeWidth="1.6" />
+      <path d={`M ${x1} ${y} H ${mid - 9}`} stroke={ink} strokeWidth="1.5" />
       <path
-        d={`M ${mid - 10} ${y - 10} L ${mid + 8} ${y} L ${mid - 10} ${y + 10} Z`}
+        d={`M ${mid - 9} ${y - 9} L ${mid + 8} ${y} L ${mid - 9} ${y + 9} Z`}
         fill="#f7f1e4"
         stroke={ink}
         strokeWidth="1.4"
       />
-      <path d={`M ${mid + 8} ${y - 10} v 20`} stroke={ink} strokeWidth="1.6" />
-      <path d={`M ${mid + 8} ${y} H ${x2}`} stroke={ink} strokeWidth="1.6" />
-      <Label x={mid} y={y - 14} anchor="middle">
+      <path d={`M ${mid + 8} ${y - 9} v 18`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${mid + 8} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
+      <Txt x={mid} y={y - 14} anchor="middle">
         {refDes}
-      </Label>
+      </Txt>
     </g>
   );
 }
@@ -313,23 +292,24 @@ export function Npn({
 }) {
   return (
     <g>
-      <circle cx={x} cy={y} r="16" fill="#f7f1e4" stroke={ink} strokeWidth="1.5" />
-      <path d={`M ${x - 8} ${y - 10} v 20`} stroke={ink} strokeWidth="1.8" />
-      <path d={`M ${x - 8} ${y - 6} L ${x + 12} ${y - 14}`} stroke={ink} strokeWidth="1.5" />
-      <path d={`M ${x - 8} ${y + 6} L ${x + 12} ${y + 14}`} stroke={ink} strokeWidth="1.5" />
+      <circle cx={x} cy={y} r="15" fill="#f7f1e4" stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x - 7} ${y - 9} v 18`} stroke={ink} strokeWidth="1.7" />
+      <path d={`M ${x - 7} ${y - 5} L ${x + 11} ${y - 13}`} stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x - 7} ${y + 5} L ${x + 11} ${y + 13}`} stroke={ink} strokeWidth="1.4" />
       <path
-        d={`M ${x + 4} ${y + 8} l 4 8 6 -2`}
+        d={`M ${x + 3} ${y + 7} l 4 7 6 -2`}
         fill="none"
         stroke={ink}
-        strokeWidth="1.3"
+        strokeWidth="1.2"
       />
-      <Label x={x - 8} y={y + 32} anchor="middle">
+      <Txt x={x} y={y + 30} anchor="middle" size={10}>
         {name}
-      </Label>
+      </Txt>
     </g>
   );
 }
 
+/** N-JFET. Drain (x, y-18), source (x, y+18), gate (x-18, y). */
 export function Jfet({
   x,
   y,
@@ -341,14 +321,14 @@ export function Jfet({
 }) {
   return (
     <g>
-      <circle cx={x} cy={y} r="18" fill="#f7f1e4" stroke={ink} strokeWidth="1.5" />
-      <path d={`M ${x - 6} ${y - 12} v 24`} stroke={ink} strokeWidth="2" />
-      <path d={`M ${x - 6} ${y - 8} H ${x + 12}`} stroke={ink} strokeWidth="1.5" />
-      <path d={`M ${x - 6} ${y + 8} H ${x + 12}`} stroke={ink} strokeWidth="1.5" />
-      <path d={`M ${x - 18} ${y} H ${x - 6}`} stroke={ink} strokeWidth="1.5" />
-      <Label x={x} y={y + 34} anchor="middle">
+      <circle cx={x} cy={y} r="17" fill="#f7f1e4" stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x - 5} ${y - 11} v 22`} stroke={ink} strokeWidth="2" />
+      <path d={`M ${x - 5} ${y - 7} H ${x + 11}`} stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x - 5} ${y + 7} H ${x + 11}`} stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x - 18} ${y} H ${x - 5}`} stroke={ink} strokeWidth="1.4" />
+      <Txt x={x} y={y + 32} anchor="middle" size={10}>
         {name}
-      </Label>
+      </Txt>
     </g>
   );
 }
@@ -378,29 +358,26 @@ export function Chip({
         rx="6"
         fill="#ece4d4"
         stroke={ink}
-        strokeWidth="1.6"
+        strokeWidth="1.5"
       />
-      <Label x={x + w / 2} y={y + 18} anchor="middle">
+      <Txt x={x + w / 2} y={y + 16} anchor="middle" weight="bold">
         {name}
-      </Label>
+      </Txt>
       {pins.map((p) => (
         <g key={`${p.side}-${p.n}-${p.label}-${p.yy}`}>
           <path
-            d={
-              p.side === "L"
-                ? `M ${x} ${p.yy} h -14`
-                : `M ${x + w} ${p.yy} h 14`
-            }
+            d={p.side === "L" ? `M ${x} ${p.yy} h -12` : `M ${x + w} ${p.yy} h 12`}
             stroke={ink}
-            strokeWidth="1.6"
+            strokeWidth="1.5"
           />
-          <Label
+          <Txt
             x={p.side === "L" ? x + 8 : x + w - 8}
-            y={p.yy + 4}
+            y={p.yy + 3}
             anchor={p.side === "L" ? "start" : "end"}
+            size={10}
           >
             {`${p.n} ${p.label}`}
-          </Label>
+          </Txt>
         </g>
       ))}
     </g>
