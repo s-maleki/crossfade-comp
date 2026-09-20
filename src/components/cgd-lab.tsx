@@ -24,7 +24,7 @@ function formatPico(farads: number): string {
 }
 
 function formatTick(volts: number): string {
-  if (volts >= 0.01) return `${(volts * 1e3).toFixed(2)} mV`;
+  if (volts >= 1e-3) return `${(volts * 1e3).toFixed(2)} mV`;
   if (volts >= 1e-6) return `${(volts * 1e6).toFixed(1)} µV`;
   return `${(volts * 1e9).toFixed(0)} nV`;
 }

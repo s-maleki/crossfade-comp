@@ -108,13 +108,13 @@ export function CgdCompensationLayout() {
       <Pad x={460} y={162} />
       <Pad x={490} y={162} />
       <Txt x={430} y={186} anchor="middle" size={10}>
-        D
+        G
       </Txt>
       <Txt x={460} y={186} anchor="middle" size={10}>
         S
       </Txt>
       <Txt x={490} y={186} anchor="middle" size={10}>
-        G
+        D
       </Txt>
       <Balloon x={534} y={104} n={1} />
 
@@ -172,24 +172,24 @@ export function CgdCompensationLayout() {
       <Balloon x={692} y={100} n={2} />
 
       <path
-        d="M 430 162 H 400 V 70 H 590"
+        d="M 490 162 H 590"
         fill="none"
         stroke="#8a5a12"
         strokeWidth="2.4"
       />
       <path
-        d="M 590 160 H 430"
+        d="M 590 160 H 490"
         fill="none"
         stroke="#8a5a12"
         strokeWidth="2.4"
       />
-      <Txt x={500} y={78} size={10}>
-        Vk′ · drain node · 2.4 mm max
+      <Txt x={520} y={148} size={10}>
+        Vk′ · 2 mm
       </Txt>
-      <Balloon x={400} y={70} n={5} />
+      <Balloon x={545} y={128} n={5} />
 
       <path
-        d="M 200 176 H 360 V 300 H 490"
+        d="M 200 176 H 360 V 162 H 430"
         fill="none"
         stroke={ink}
         strokeWidth="1.6"
@@ -289,10 +289,10 @@ export function CgdCompensationLayout() {
         Place in this order
       </Txt>
       <Txt x={780} y={88} size={11}>
-        1  Q10 first. Pin 1 (D) is Vk′. Pin 2 (S) via
+        1  Q10 first. Pin 1 (D) next to CV1. Pin 2 (S)
       </Txt>
       <Txt x={798} y={106} size={11}>
-        to AGND under the body. Pin 3 (G) toward U2.
+        via to AGND under the body. Pin 3 (G) toward U2.
       </Txt>
       <Txt x={780} y={136} size={11}>
         2  CV1 next to pin 1. Drain pad of the trimmer
