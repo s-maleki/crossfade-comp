@@ -27,7 +27,7 @@ export function SiteHeader({ active }: { active: string }) {
             crossfader fills in the 1 dB gaps.
           </p>
         </div>
-        <nav className="-mx-1 flex gap-1 overflow-x-auto pb-1">
+        <nav className="-mx-1 flex flex-wrap gap-1 pb-1">
           {LINKS.map((link) => {
             const isActive = active === link.href;
             return (
