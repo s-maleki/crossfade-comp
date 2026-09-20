@@ -1,0 +1,60 @@
+* BlendStep — JFET Cgd feedthrough vs drain neutralization
+*
+* Linear Vgs ramp, 0 → −3.5 V in 0.25 ms, into R64 = 22 kΩ.
+* Internal Cgd dumps current on the drain. Ctrim from −Vgs onto the
+* same node cancels it when Ctrim = Cgd.
+*
+* Gate injection is also netlisted (Cgate) and left open: it does not
+* move the drain tick, because Vgs is a voltage source.
+*
+* Run: ngspice -b hardware/spice/cgd_neutralize.cir
+
+.param cgd = 4p
+.param ctrim = 4p
+.param r64 = 22k
+.param tedge = 250u
+
+* Gate voltage: 0 to −3.5 V, 50 us rise into a 0.25 ms ramp, hold, return.
+Vgs gate 0 PWL(0 0 50u 0 300u -3.5 1.2m -3.5 1.45m 0 2.5m 0)
+
+* Drain node looking into U2A (virtual AC ground through R64).
+Vdiff vdiff 0 DC 0
+R64 drain vdiff {r64}
+Cgd gate drain {cgd}
+
+* Unity invert of Vgs, plus 1 kΩ isolation, plus trimmer to the drain.
+Einv ginv 0 gate 0 -1
+R73 ginv ntrim 1k
+Ctrim ntrim drain {ctrim}
+
+* The "into the gate" network, disconnected by default (Cgate = 0).
+Cgate ginv gate 0
+
+.control
+  echo  Cgd neutralization
+  echo  --- matched Ctrim = Cgd ---
+  tran 1u 2.5m
+  meas tran tick_null MAX v(drain)
+  meas tran tick_null_min MIN v(drain)
+
+  echo  --- Ctrim open (uncancelled) ---
+  alter Ctrim = 1f
+  tran 1u 2.5m
+  meas tran tick_raw MAX v(drain)
+  meas tran tick_raw_min MIN v(drain)
+
+  echo  --- 0.5 pF leftover ---
+  alter Ctrim = 3.5p
+  tran 1u 2.5m
+  meas tran tick_05pf MAX v(drain)
+  meas tran tick_05pf_min MIN v(drain)
+
+  echo  --- cap into the gate, Ctrim open (does not cancel) ---
+  alter Ctrim = 1f
+  alter Cgate = 4p
+  tran 1u 2.5m
+  meas tran tick_gate MAX v(drain)
+  meas tran tick_gate_min MIN v(drain)
+.endc
+
+.end

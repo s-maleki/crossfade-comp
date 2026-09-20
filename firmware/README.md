@@ -11,6 +11,8 @@ It does three things:
    channel whose analog mix weight is under 2 %.
 3. Output the integer-dB staircase `VN` as 62.5 kHz PWM on D3, plus a phase
    bit on D2 so the analog Vk inverter can triangle through odd 1 dB intervals.
+   D2 is **not** the Cgd neutralization invert. −Vgs is analog, from U2D on
+   the interpolator. Do not wire D2 to CV1.
 
 Wiring
 ------

@@ -79,8 +79,11 @@ and rely on analog isolation.
 ## Crossfader
 
 Prototype: linearized 2N5457 shunt on `Vdiff = VB − VA`, then `Vmix = VA + Vk′`.
-RV1 sets pinch-off. Optional: analog PWM (180 kHz triangle + LM311 + CD4053)
-if you do not want a JFET trim. Do not PWM the audio from the Arduino.
+RV1 sets pinch-off. U2D inverts the actual gate voltage and CV1 (2–10 pF)
+dumps the opposite charge onto the drain to cancel Cgd feedthrough. Do not
+inject that capacitor into the gate — U2C is a voltage source and will eat
+the current. Optional: analog PWM (180 kHz triangle + LM311 + CD4053) if you
+do not want a JFET trim. Do not PWM the audio from the Arduino.
 
 ## Sidechain
 
@@ -106,7 +109,9 @@ The dev server listens on [http://127.0.0.1:43147](http://127.0.0.1:43147).
 See `hardware/bom.csv`, the Schematics tab in the notebook, and
 `firmware/leapfrog_pt2257.ino`. Supply is a 9 V guitar-pedal brick (tip
 negative). Analog rails are +9 / 0 / −9 via ICL7660S. PT2257 runs from +9 V.
-The Nano and I²C pull-ups run from 5 V.
+The Nano and I²C pull-ups run from 5 V. Neutralize Q10 Cgd with CV1 from
+U2D (`hardware/spice/cgd_neutralize.cir`); layout notes are DWG-04A on the
+Build and Schematics pages.
 
 ## Expected prototype numbers
 
@@ -119,5 +124,5 @@ The Nano and I²C pull-ups run from 5 V.
 | Interpolation error | ≤ 0.015 dB per tap |
 
 Limits that are real and not a reason to abandon the idea: PT2257 matching
-(0.5 dB), I²C attack speed, JFET CV feedthrough (Cgd into 22 kΩ), and the
-need to keep integer taps synchronized with analog k.
+(0.5 dB), I²C attack speed, leftover JFET Cgd after CV1 (a single-point null),
+and the need to keep integer taps synchronized with analog k.

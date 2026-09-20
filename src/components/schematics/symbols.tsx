@@ -6,19 +6,21 @@ export function SchematicFrame({
   children,
   viewBox,
   notes,
+  rev = "B",
 }: {
   dwg: string;
   title: string;
   children: ReactNode;
   viewBox: string;
   notes?: string;
+  rev?: string;
 }) {
   return (
     <figure className="overflow-hidden rounded-xl border border-stone-300 bg-[#f3eee3] text-[#1c1916] shadow-sm">
       <figcaption className="flex items-center justify-between gap-3 border-b border-[#1c1916]/15 px-3 py-1.5 font-mono text-[10px] tracking-wider uppercase">
         <span>BlendStep · {dwg}</span>
         <span className="truncate text-center">{title}</span>
-        <span>Rev B</span>
+        <span>Rev {rev}</span>
       </figcaption>
       <div className="overflow-x-auto">
         <svg
@@ -182,6 +184,45 @@ export function CapH({
       <path d={`M ${mid + 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${mid + 5} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
       <Txt x={mid} y={y - 16} anchor="middle">
+        {`${refDes} ${value}`}
+      </Txt>
+    </g>
+  );
+}
+
+/** Horizontal trimmer capacitor (arrow through the plates). */
+export function TrimmerCapH({
+  x1,
+  x2,
+  y,
+  refDes,
+  value,
+}: {
+  x1: number;
+  x2: number;
+  y: number;
+  refDes: string;
+  value: string;
+}) {
+  const mid = (x1 + x2) / 2;
+  return (
+    <g>
+      <path d={`M ${x1} ${y} H ${mid - 6}`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${mid - 6} ${y - 12} v 24`} stroke={ink} strokeWidth="1.8" />
+      <path d={`M ${mid + 6} ${y - 12} v 24`} stroke={ink} strokeWidth="1.8" />
+      <path d={`M ${mid + 6} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
+      <path
+        d={`M ${mid - 16} ${y + 16} L ${mid + 14} ${y - 16}`}
+        stroke={ink}
+        strokeWidth="1.3"
+      />
+      <path
+        d={`M ${mid + 8} ${y - 16} h 8 v 8`}
+        fill="none"
+        stroke={ink}
+        strokeWidth="1.3"
+      />
+      <Txt x={mid} y={y - 20} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>

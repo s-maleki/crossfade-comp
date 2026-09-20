@@ -5,7 +5,7 @@ J3,2.1 mm barrel,1,9 V DC,Boss polarity (tip negative)
 D1,1N5817,1,Reverse-protection Schottky,
 D2-D6,BAT85,5,Precision rectifier / clamps,1N4148 works with more Vf
 U1,TL074,1,Quad op-amp,Input buffers + HPF
-U2,TL074,1,Quad op-amp,Difference interpolator
+U2,TL074,1,Quad op-amp,Difference + Vgs driver + invert
 U3,TL074,1,Quad op-amp,Rectifier / AR / log
 U4,TL074,1,Quad op-amp,Law + makeup
 U5,TL072,1,Dual op-amp,Vfrac and Vk invert
@@ -16,13 +16,14 @@ U12,Arduino Nano,1,ATmega328P 5 V,Or ATtiny85 with I2C
 Q1 Q2,2N3904,2,Log pair,Glue together
 Q10,2N5457,1,N-JFET VCR,J113 alternative; select Vp
 Q11,2N7000,1,Vk invert switch,
-RV1,10k trim,1,JFET pinch-off,
+RV1,10k trim,1,JFET pinch-off,Rf of U2C; raise to 47k if |Vp|>2.2 V
 RV2,100k audio,1,Makeup,
 RV3,50k lin,1,Attack,
 RV4,1M lin,1,Release,
 RV5,10k lin,1,Threshold,
 RV6,10k lin,1,Ratio,
 RV7,10k lin,1,Max GR,
+CV1,2-10pF trim,1,Cgd neutralize,C0G; Murata TZC3 or 5 mm ceramic; onto drain not gate
 C1,220µ/16V,1,VCC bulk,Electrolytic
 C3 C4,10µ/16V,2,7660 charge pump,Electrolytic or tantalum
 C5,100µ/16V,1,VEE bulk,
@@ -33,13 +34,14 @@ C12-C15 C18 C19,10µ/16V,6,Coupling,
 C20,22n film,1,Sidechain HPF,
 C21,1µ film,1,Attack/release,
 C30 C31,100n film,2,VN PWM filter,
+C34,22p C0G,1,U2D compensation,Across R72 if invert rings
 Cx,100n ceramic,8,Rail decouple,One per IC package
 R10,1M,1,Input Z,
 R11,100,1,Series stopper,
 R12 R13,10k,2,PT2257 feed,
 R15 R16 R42,100k,3,Bias / output load,
 R20,100k,1,HPF,
-R30-R33 R38 R60-R63 R67-R69 R50 R51,10k,18,Audio / law,
+R30-R33 R38 R60-R63 R67-R69 R50 R51 R71 R72,10k,20,Audio / law / invert,
 R34,10k,1,Log Iin,
 R35,499k,1,Iref,
 R36,10k0,1,Log gain,
@@ -50,6 +52,7 @@ R52,499k,1,Vfrac ×50,
 R64,22k,1,JFET series,
 R65 R66,470k,2,JFET linearize,
 R70,22k,1,Vgs driver,
+R73,1k,1,CV1 isolate,At U2D pin 14; not at the drain
 R80 R81,4.7k,2,I2C pull-up to +5 V,
 R82 R83,1k,2,PWM filter,
 S1,SPST,1,Sidechain HPF bypass,

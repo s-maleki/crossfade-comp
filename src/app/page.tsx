@@ -20,6 +20,10 @@ const FINDINGS = [
     q: "Is PT2257 actually usable?",
     a: "Yes for a 9 V pedal with attack ≥ 5 ms and leapfrog writes. LM1972 is the upgrade if you want pop-free 0.5 dB taps and 1 ms attack. Skip M62429 — not enough headroom.",
   },
+  {
+    q: "Does JFET Cgd tick the guitar?",
+    a: "Yes: ~4 pF at Vds ≈ 0 into 22 kΩ is a 1.2 mV spike on a fast pinch-off (−41 dB on 100 mVrms). Invert Vgs with U2D and dump it through a 2–10 pF trimmer onto the drain, not the gate.",
+  },
 ];
 
 export default function HomePage() {

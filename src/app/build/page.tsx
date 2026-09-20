@@ -1,3 +1,5 @@
+import { CgdLab } from "@/components/cgd-lab";
+import { CgdCompensationLayout } from "@/components/schematics/cgd-layout";
 import { SiteHeader } from "@/components/site-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -40,6 +42,8 @@ export default function BuildPage() {
               <Row k="Interpolation error" v="≤ 0.015 dB / tap" />
               <Row k="Min attack (PT2257)" v="~5 ms for 20 dB GR" />
               <Row k="Min attack (LM1972)" v="~1 ms" />
+              <Row k="Cgd tick, uncancelled" v="~1.2 mV / −41 dB on 100 mV" />
+              <Row k="Cgd tick, CV1 nulled" v="set by leftover 0.5 pF" />
             </CardContent>
           </Card>
           <Card>
@@ -60,10 +64,10 @@ export default function BuildPage() {
                 FET compressor produces. No PWM images if you stay with the JFET.
               </p>
               <p>
-                <span className="text-foreground">CV feedthrough:</span> Q10 Cgd
-                (~3 pF) into 22 kΩ is a 2.4 kHz coupling pole. Fast Vk edges
-                tick. The analog attack already limits dVk/dt; add 1 kΩ + 1 nF
-                on the gate if you still hear it.
+                <span className="text-foreground">CV feedthrough:</span> Q10
+                Cgd (~4 pF at Vds ≈ 0) into R64 dumps a tick onto Vk′. DWG-04
+                Rev C cancels it with CV1 from −Vgs. Do not put a capacitor
+                into the gate: U2C eats that current and the drain tick stays.
               </p>
               <p>
                 <span className="text-foreground">Decade writes (−9 → −11):</span>{" "}
@@ -71,6 +75,165 @@ export default function BuildPage() {
                 mute. 120 dB PT2257 separation plus JFET isolation keeps it off
                 the output.
               </p>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div className="max-w-3xl">
+            <h3 className="font-heading text-2xl text-amber-50">
+              Cgd neutralization
+            </h3>
+            <p className="mt-2 leading-relaxed text-muted-foreground">
+              The JFET is a shunt on the 1 dB residual, but its gate-drain
+              capacitance still sees the full control swing. That current lands
+              on Vk′, which is already in the audio mix. A few picofarads of
+              inverted Vgs onto the same node cancel it.
+            </p>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Where the charge actually goes</CardTitle>
+              <CardDescription>
+                Gate-to-drain feedthrough is a drain-node problem.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+              <p>
+                Q10 is an N-JFET with source on AGND and drain at Vk′. U2C
+                forces Vgs. Internal Cgd sits between those two nodes, so a
+                control edge produces
+              </p>
+              <p className="font-mono text-foreground">
+                i_drain = Cgd · d(Vgs − Vk′)/dt ≈ Cgd · dVgs/dt
+              </p>
+              <p>
+                That current flows through R64 (22 kΩ) into U2A’s low-Z
+                output. Cgd·R64 is about 90 ns, so any analog-attack ramp is a
+                current pulse whose height is i·R64. A 4 pF, 3.5 V, 0.25 ms
+                pinch-off is 56 nA and a 1.2 mV tick — roughly −41 dB on a
+                100 mVrms guitar. Quiet passages and fast attack make it
+                obvious.
+              </p>
+              <p>
+                The opposite current is
+                <span className="font-mono text-foreground"> Ctrim · d(−Vgs)/dt </span>
+                dumped onto the same drain. Unity inversion (R71 = R72) makes
+                the null Ctrim = Cgd. A 2–10 pF C0G trimmer covers 2N5457 /
+                J113 at Vds ≈ 0, where Cgd is larger than the 2 pF Crss
+                datasheet number taken at 15 V.
+              </p>
+              <p>
+                <span className="text-foreground">Why not the gate?</span> A
+                capacitor from −Vgs into the gate looks into U2C, which is a
+                voltage source. Extra gate current is absorbed, Vgs does not
+                change, and Cgd keeps injecting. Neutralization has to land on
+                Vk′. The 1 kΩ + 1 nF gate snubber is a different trick: it
+                slows dVgs/dt and therefore slows attack. Keep it off the
+                board unless you want that.
+              </p>
+            </CardContent>
+          </Card>
+
+          <CgdLab />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Generate −Vgs from the real gate voltage</CardTitle>
+              <CardDescription>
+                Invert after RV1. Do not invert Vk, and do not reuse the D2
+                k-triangle flag.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+              <ol className="list-decimal space-y-3 pl-5">
+                <li>
+                  <span className="text-foreground">U2C is already the inverted, trimmed gate drive.</span>{" "}
+                  Vk (0–5 V) into R70, RV1 as feedback, non-inverting input on
+                  AGND. Output is Vgs = 0 to −Vp. Trim RV1 so that Vk = 5 V
+                  just pinches Q10 off. That is k = 1.
+                </li>
+                <li>
+                  <span className="text-foreground">U2D is the spare quarter of the same TL074.</span>{" "}
+                  R71 = R72 = 10 kΩ, non-inverting input on AGND. Output is
+                  Vgs_inv = −Vgs, same swing, opposite sign, same package so
+                  the two ramps share slew and delay. If U2D rings, 22 pF C0G
+                  across R72 (C34).
+                </li>
+                <li>
+                  <span className="text-foreground">R73 (1 kΩ) sits at U2D pin 8, then a short run to CV1.</span>{" "}
+                  It keeps a shorted trimmer from gluing the invert output onto
+                  Vk′, and it isolates audio on the drain from U2D. At 5 pF the
+                  1 kΩ is nothing on a millisecond edge and about 1.6 MΩ of
+                  reactance at 20 kHz, so it does not form an audio divider.
+                </li>
+                <li>
+                  <span className="text-foreground">CV1, 2–10 pF, from R73 to Q10 pin 1.</span>{" "}
+                  Start at 4 pF. Null on the bench. Ctrim is not a function of
+                  Vk’s 5 V scale: if you drove CV1 from Vk you would need
+                  Ctrim = Cgd · |Vp| / 5 V, which moves every time you change
+                  the FET or RV1.
+                </li>
+                <li>
+                  <span className="text-foreground">Leave D2 / U5 alone.</span>{" "}
+                  Nano D2 tells U5 to invert Vk on odd integer-dB steps so the
+                  analog mix triangles 0–1–0. That flag is a logic-rate square
+                  wave, not −Vgs. Tapping it for CV1 would inject leapfrog
+                  edges into the guitar.
+                </li>
+              </ol>
+            </CardContent>
+          </Card>
+
+          <CgdCompensationLayout />
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Lay the island out, then null it</CardTitle>
+              <CardDescription>
+                The drawing above is the copper. The sequence below is the
+                bench procedure.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+              <ol className="list-decimal space-y-3 pl-5">
+                <li>
+                  Place Q10, CV1, R64, R65, R66, and R73 as one cluster.
+                  Drain copper from pin 1 to CV1’s drain pad should be a few
+                  millimetres, no via. Source via under the TO-92 to AGND.
+                </li>
+                <li>
+                  Sit U2 so the C/D edge (pin 8 = Vgs, pin 14 = Vgs_inv on
+                  a TL074) faces that cluster. Run the two control traces as
+                  a pair, 0.5 mm apart, and do not pour them under Vk′.
+                </li>
+                <li>
+                  Keep ICL7660S, C3, and C4 at least 25 mm off the island
+                  with their own 0 V return. Charge-pump edges look like Cgd
+                  ticks on a scope.
+                </li>
+                <li>
+                  Take the recombine tap (R68) at the U2B end of the Vk′ run,
+                  not at the CV1 pad, so U2B input current does not drop
+                  across the trimmer land.
+                </li>
+                <li>
+                  <span className="text-foreground">Null:</span> jumper VA to
+                  VB so Vdiff is zero (or mute the input and program both
+                  taps equal). Scope Vmix, AC-coupled, 2 mV/div. Fire the
+                  fastest attack you will use, or step Vk 0 → 5 V. Trim CV1
+                  for minimum tick. Cgd varies with Vgs; null at mid-k, then
+                  check the 0 and 1 ends. Leftover 0.5 pF is a successful
+                  trim.
+                </li>
+                <li>
+                  Restore VA/VB, play a note, and confirm the compressor still
+                  attacks. Neutralization must not have become a 1 nF snubber
+                  by accident — if attack got slow, CV1 is too large or is
+                  shorted.
+                </li>
+              </ol>
             </CardContent>
           </Card>
         </section>
@@ -111,6 +274,12 @@ export default function BuildPage() {
               (“pop and click free”) are the honest path if a write still
               ticks on the bench.
             </p>
+            <p>
+              Cgd neutralization is a single-point null. Cgd(Vdg) is not
+              constant, and U2D is only as inverted as R71/R72 matching. It
+              knocks the tick down tens of dB. It does not make a JFET as
+              quiet as an LM1972.
+            </p>
           </CardContent>
         </Card>
 
@@ -148,7 +317,8 @@ export default function BuildPage() {
             <p>hardware/bom.csv — prototype bill of materials</p>
             <p>hardware/spice/interpolation.cir — mix-law check</p>
             <p>hardware/spice/sidechain.cir — rectifier / AR / log</p>
-            <p>scripts/verify-math.ts — interpolation identities</p>
+            <p>hardware/spice/cgd_neutralize.cir — drain tick with / without CV1</p>
+            <p>scripts/verify-math.ts — interpolation identities + Cgd sizing</p>
           </CardContent>
         </Card>
       </main>

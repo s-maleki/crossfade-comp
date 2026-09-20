@@ -1,4 +1,5 @@
 import { AudioPathSchematic } from "@/components/schematics/audio-path-schematic";
+import { CgdCompensationLayout } from "@/components/schematics/cgd-layout";
 import { ControlLawSchematic } from "@/components/schematics/control-law-schematic";
 import { CrossfaderSchematic } from "@/components/schematics/crossfader-schematic";
 import { DigitalIcSchematic } from "@/components/schematics/digital-ic-schematic";
@@ -17,12 +18,14 @@ export default function SchematicsPage() {
           <p className="mt-3 leading-relaxed text-muted-foreground">
             Working prototype values. Op-amps are TL074/TL072 on ±9 V. The
             voltage-controlled element is a 2N5457 used as a linearized VCR on
-            the 1 dB difference, not an LM13700 on the guitar signal. A PWM
-            analog-switch mixer is an optional higher-linearity substitute and
-            is described on the Build page.
+            the 1 dB difference, not an LM13700 on the guitar signal. DWG-04
+            Rev C adds Miller neutralization: U2D inverts Vgs and CV1 dumps
+            the opposite charge onto the JFET drain. A PWM analog-switch mixer
+            is an optional higher-linearity substitute and is described on the
+            Build page.
           </p>
         </div>
-        <Tabs defaultValue="audio">
+        <Tabs defaultValue="xfade">
           <TabsList variant="line" className="flex flex-wrap">
             <TabsTrigger value="audio">Audio path</TabsTrigger>
             <TabsTrigger value="env">Envelope / AR</TabsTrigger>
@@ -40,8 +43,9 @@ export default function SchematicsPage() {
           <TabsContent value="law" className="mt-4">
             <ControlLawSchematic />
           </TabsContent>
-          <TabsContent value="xfade" className="mt-4">
+          <TabsContent value="xfade" className="mt-4 space-y-4">
             <CrossfaderSchematic />
+            <CgdCompensationLayout />
           </TabsContent>
           <TabsContent value="digital" className="mt-4">
             <DigitalIcSchematic />
