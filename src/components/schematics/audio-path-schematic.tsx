@@ -33,7 +33,7 @@ export function AudioPathSchematic() {
       <Gnd x={148} y={180} />
       <ResistorH x1={148} x2={250} y={100} refDes="R11" value="100" />
       <Dot x={220} y={100} />
-      <CapV x={220} y1={100} y2={170} refDes="C11" value="220p" />
+      <CapV x={220} y1={100} y2={170} refDes="C11" value="220p" label="left" />
       <Gnd x={220} y={170} />
       <Wire d="M 250 100 V 84 H 280" />
       <OpAmp x={280} y={100} name="U1A" />

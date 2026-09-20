@@ -51,6 +51,7 @@ export function Txt({
   anchor = "start",
   size = 11,
   weight = "normal",
+  halo = true,
 }: {
   x: number;
   y: number;
@@ -58,6 +59,7 @@ export function Txt({
   anchor?: "start" | "middle" | "end";
   size?: number;
   weight?: "normal" | "bold";
+  halo?: boolean;
 }) {
   return (
     <text
@@ -68,8 +70,8 @@ export function Txt({
       fontSize={size}
       fontWeight={weight}
       textAnchor={anchor}
-      stroke={paper}
-      strokeWidth={size >= 12 ? 4.5 : 3.4}
+      stroke={halo ? paper : "none"}
+      strokeWidth={halo ? (size >= 12 ? 3.6 : 2.4) : 0}
       paintOrder="stroke"
       strokeLinejoin="round"
     >
@@ -308,7 +310,7 @@ export function OpAmp({
       <text x={x + 9} y={y + 20} fontSize="14" fill={ink}>
         −
       </text>
-      <Txt x={x + 28} y={y + 4} size={10}>
+      <Txt x={x + 28} y={y + 4} size={10} halo={false}>
         {name}
       </Txt>
     </g>
@@ -466,7 +468,7 @@ export function Chip({
         stroke={ink}
         strokeWidth="1.5"
       />
-      <Txt x={x + w / 2} y={y + 16} anchor="middle" weight="bold">
+      <Txt x={x + w / 2} y={y + 16} anchor="middle" weight="bold" halo={false}>
         {name}
       </Txt>
       {pins.map((p) => (
@@ -481,6 +483,7 @@ export function Chip({
             y={p.yy + 3}
             anchor={p.side === "L" ? "start" : "end"}
             size={10}
+            halo={false}
           >
             {`${p.n} ${p.label}`}
           </Txt>
