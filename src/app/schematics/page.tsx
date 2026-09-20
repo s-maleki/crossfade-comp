@@ -8,7 +8,18 @@ import { PowerSchematic } from "@/components/schematics/power-schematic";
 import { SiteHeader } from "@/components/site-header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function SchematicsPage() {
+const TABS = ["audio", "env", "law", "xfade", "digital", "power"] as const;
+
+export default async function SchematicsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const params = await searchParams;
+  const defaultValue = TABS.includes(params.tab as (typeof TABS)[number])
+    ? (params.tab as string)
+    : "audio";
+
   return (
     <div className="min-h-screen">
       <SiteHeader active="/schematics" />
@@ -16,16 +27,15 @@ export default function SchematicsPage() {
         <div className="max-w-3xl">
           <h2 className="font-heading text-3xl text-amber-50">Schematics</h2>
           <p className="mt-3 leading-relaxed text-muted-foreground">
-            Working prototype values. Op-amps are TL074/TL072 on ±9 V. The
-            voltage-controlled element is a 2N5457 used as a linearized VCR on
-            the 1 dB difference, not an LM13700 on the guitar signal. DWG-04
-            Rev C adds Miller neutralization: U2D inverts Vgs and CV1 dumps
-            the opposite charge onto the JFET drain. A PWM analog-switch mixer
-            is an optional higher-linearity substitute and is described on the
-            Build page.
+            Working prototype values. Op-amps are TL074/TL072 on ±9 V. Every
+            net on these drawings lands on a pin, a junction, or an off-page
+            port. The voltage-controlled element is a 2N5457 used as a
+            linearized VCR on the 1 dB difference, not an LM13700 on the
+            guitar signal. DWG-04 adds Miller neutralization: U2D inverts Vgs
+            and CV1 dumps the opposite charge onto the JFET drain.
           </p>
         </div>
-        <Tabs defaultValue="xfade">
+        <Tabs defaultValue={defaultValue}>
           <TabsList variant="line" className="flex flex-wrap">
             <TabsTrigger value="audio">Audio path</TabsTrigger>
             <TabsTrigger value="env">Envelope / AR</TabsTrigger>

@@ -5,6 +5,7 @@ import {
   Dot,
   Gnd,
   OpAmp,
+  Port,
   ResistorH,
   ResistorV,
   SchematicFrame,
@@ -16,6 +17,7 @@ export function AudioPathSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-01"
+      rev="D"
       title="Audio path — input, dual PT2257 taps, makeup"
       viewBox="0 0 1180 540"
       notes="Both PT2257 channels see the same buffered guitar signal. The IC is single-supply and internally biased near VDD/2, so C12–C15 are required. After those caps the interpolator works around analog ground. Keep the two channel layouts symmetrical; 0.5 dB of tracking error is already the IC limit."
@@ -42,18 +44,16 @@ export function AudioPathSchematic() {
 
       <Wire d="M 400 70 V 28 H 490" />
       <ResistorH x1={490} x2={600} y={28} refDes="R13" value="10k" />
-      <CapH x1={620} x2={720} y={28} refDes="C13" value="10u" />
+      <CapH x1={620} x2={728} y={28} refDes="C13" value="10u" />
       <Wire d="M 600 28 H 620" />
 
       <Wire d="M 400 70 V 170 H 490" />
       <ResistorH x1={490} x2={600} y={170} refDes="R12" value="10k" />
-      <CapH x1={620} x2={720} y={170} refDes="C12" value="10u" />
+      <CapH x1={620} x2={728} y={170} refDes="C12" value="10u" />
       <Wire d="M 600 170 H 620" />
 
-      <Wire d="M 400 70 V 220" />
-      <Txt x={410} y={236} size={10}>
-        to sidechain DWG-02
-      </Txt>
+      <Wire d="M 400 70 V 220 H 420" />
+      <Port x={420} y={220} label="to DWG-02" dir="out" />
 
       <Chip
         x={740}
@@ -70,18 +70,21 @@ export function AudioPathSchematic() {
           { side: "R", n: 2, label: "LOUT", yy: 150 },
         ]}
       />
-      <Wire d="M 720 28 H 728" />
-      <Wire d="M 720 170 H 728" />
       <Txt x={740} y={224} size={10}>
         VDD +9 V · VSS 0 V
       </Txt>
       <Wire d="M 740 80 H 700 V 250" />
-      <Wire d="M 740 110 H 712 V 250" />
-      <Txt x={500} y={266} size={10}>
-        I2C from MCU · 4.7k to +5 V · DWG-05
+      <Dot x={700} y={250} />
+      <Txt x={708} y={254} size={10}>
+        SDA
+      </Txt>
+      <Wire d="M 740 110 H 712 V 270" />
+      <Dot x={712} y={270} />
+      <Txt x={720} y={274} size={10}>
+        SCL · 4.7k to +5 V · DWG-05
       </Txt>
 
-      <CapH x1={912} x2={990} y={50} refDes="C15" value="10u" />
+      <CapH x1={912} x2={1008} y={50} refDes="C15" value="10u" />
       <Dot x={1008} y={50} />
       <ResistorV x={1008} y1={50} y2={110} refDes="R16" value="100k" />
       <Gnd x={1008} y={110} />
@@ -91,12 +94,12 @@ export function AudioPathSchematic() {
       <Wire d="M 1104 66 H 1155" />
       <Txt x={1160} y={70}>VB</Txt>
 
-      <CapH x1={912} x2={990} y={150} refDes="C14" value="10u" />
+      <CapH x1={912} x2={1008} y={150} refDes="C14" value="10u" />
       <Dot x={1008} y={150} />
       <Wire d="M 1008 150 H 1040" />
       <OpAmp x={1040} y={166} name="U1B" />
-      <ResistorV x={1020} y1={150} y2={214} refDes="R15" value="100k" />
-      <Gnd x={1020} y={214} />
+      <ResistorV x={1008} y1={150} y2={214} refDes="R15" value="100k" />
+      <Gnd x={1008} y={214} />
       <Wire d="M 1040 182 H 1028 V 214 H 1104 V 166" />
       <Wire d="M 1104 166 H 1155" />
       <Txt x={1160} y={170}>VA</Txt>
@@ -112,12 +115,14 @@ export function AudioPathSchematic() {
       <Wire d="M 200 376 H 188 V 430" />
       <ResistorH x1={188} x2={300} y={430} refDes="R40" value="10k" />
       <ResistorH x1={300} x2={420} y={430} refDes="RV2" value="100k" />
+      <Wire d="M 420 430 H 360" />
+      <Dot x={360} y={430} />
       <Wire d="M 360 430 V 360 H 264" />
       <Txt x={430} y={424} size={10}>
         gain 1 to 11
       </Txt>
       <ResistorH x1={264} x2={370} y={360} refDes="R41" value="220" />
-      <CapH x1={370} x2={450} y={360} refDes="C19" value="10u" />
+      <CapH x1={370} x2={470} y={360} refDes="C19" value="10u" />
       <Dot x={470} y={360} />
       <ResistorV x={470} y1={360} y2={430} refDes="R42" value="100k" />
       <Gnd x={470} y={430} />

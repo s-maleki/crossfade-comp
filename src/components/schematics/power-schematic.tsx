@@ -3,6 +3,7 @@ import {
   CapV,
   Chip,
   DiodeH,
+  Dot,
   Gnd,
   SchematicFrame,
   Txt,
@@ -13,6 +14,7 @@ export function PowerSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-06"
+      rev="D"
       title="9 V pedal supply · +9 / 0 / -9 and +5 V"
       viewBox="0 0 1180 420"
       notes="Boss-style 9 V DC, tip negative. ICL7660S inverts to -9 V for the op-amp analog-ground system. PT2257 runs from raw +9 V. The Nano and I2C pull-ups run from 78L05. On a 12 V supply, regulate PT2257 to 9 V (operating max 10 V). Do not run LM1972 at +/-9 V (max 12 V total); use +5/-5 if that upgrade is fitted. AD633 is not used: it needs +/-8 V and adds ~90 uV of 10 kHz noise."
@@ -23,22 +25,28 @@ export function PowerSchematic() {
       <Txt x={24} y={70}>9 V+</Txt>
       <Wire d="M 58 70 H 80" />
       <DiodeH x1={80} x2={160} y={70} refDes="D1 1N5817" />
-      <Wire d="M 160 70 H 200" />
+      <Dot x={160} y={70} />
+      <Wire d="M 160 70 H 208" />
       <Chip
         x={220}
         y={40}
         w={130}
-        h={70}
+        h={90}
         name="78L05"
         pins={[
           { side: "L", n: 1, label: "IN", yy: 70 },
+          { side: "L", n: 2, label: "GND", yy: 110 },
           { side: "R", n: 3, label: "5V", yy: 70 },
         ]}
       />
-      <CapV x={180} y1={70} y2={140} refDes="C1" value="220u/16V" />
-      <Gnd x={180} y={140} />
+      <Wire d="M 220 110 H 190" />
+      <Gnd x={190} y={110} />
+      <CapV x={180} y1={70} y2={160} refDes="C1" value="220u/16V" />
+      <Gnd x={180} y={160} />
+      <Dot x={180} y={70} />
       <CapV x={380} y1={70} y2={140} refDes="C6" value="10u" />
       <Gnd x={380} y={140} />
+      <Dot x={380} y={70} />
       <Wire d="M 362 70 H 430" />
       <Txt x={440} y={74}>+5 V MCU</Txt>
 
@@ -57,15 +65,23 @@ export function PowerSchematic() {
         ]}
       />
       <Wire d="M 160 70 V 220 H 208" />
+      <Dot x={160} y={220} />
       <Wire d="M 220 290 H 190" />
       <Gnd x={190} y={290} />
       <CapH x1={402} x2={490} y={220} refDes="C3" value="10u" />
+      <Dot x={490} y={220} />
       <Wire d="M 490 220 V 290 H 402" />
+      <Dot x={402} y={290} />
       <CapV x={450} y1={255} y2={330} refDes="C5" value="100u/16V" />
       <Gnd x={450} y={330} />
+      <Dot x={450} y={255} />
+      <CapH x1={402} x2={520} y={255} refDes="C4" value="10u" />
+      <Wire d="M 520 255 V 330" />
+      <Gnd x={520} y={330} />
       <Wire d="M 402 255 H 560" />
       <Txt x={570} y={259}>VEE -9 V</Txt>
       <Wire d="M 160 70 V 370 H 560" />
+      <Dot x={160} y={370} />
       <Txt x={570} y={374}>VCC +9 V analog</Txt>
 
       <Txt x={700} y={70} size={10}>

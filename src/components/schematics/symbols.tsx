@@ -304,17 +304,20 @@ export function DiodeH({
   refDes: string;
 }) {
   const mid = (x1 + x2) / 2;
+  const dir = x2 >= x1 ? 1 : -1;
+  const tip = mid + 8 * dir;
+  const back = mid - 9 * dir;
   return (
     <g>
-      <path d={`M ${x1} ${y} H ${mid - 9}`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${x1} ${y} H ${back}`} stroke={ink} strokeWidth="1.5" />
       <path
-        d={`M ${mid - 9} ${y - 9} L ${mid + 8} ${y} L ${mid - 9} ${y + 9} Z`}
+        d={`M ${back} ${y - 9} L ${tip} ${y} L ${back} ${y + 9} Z`}
         fill="#f7f1e4"
         stroke={ink}
         strokeWidth="1.4"
       />
-      <path d={`M ${mid + 8} ${y - 9} v 18`} stroke={ink} strokeWidth="1.5" />
-      <path d={`M ${mid + 8} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${tip} ${y - 9} v 18`} stroke={ink} strokeWidth="1.5" />
+      <path d={`M ${tip} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
       <Txt x={mid} y={y - 14} anchor="middle">
         {refDes}
       </Txt>
@@ -322,6 +325,9 @@ export function DiodeH({
   );
 }
 
+/**
+ * NPN. Base (x − 18, y), collector (x + 18, y − 18), emitter (x + 18, y + 18).
+ */
 export function Npn({
   x,
   y,
@@ -335,16 +341,50 @@ export function Npn({
     <g>
       <circle cx={x} cy={y} r="15" fill="#f7f1e4" stroke={ink} strokeWidth="1.4" />
       <path d={`M ${x - 7} ${y - 9} v 18`} stroke={ink} strokeWidth="1.7" />
+      <path d={`M ${x - 18} ${y} H ${x - 7}`} stroke={ink} strokeWidth="1.4" />
       <path d={`M ${x - 7} ${y - 5} L ${x + 11} ${y - 13}`} stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x + 11} ${y - 13} L ${x + 18} ${y - 18}`} stroke={ink} strokeWidth="1.4" />
       <path d={`M ${x - 7} ${y + 5} L ${x + 11} ${y + 13}`} stroke={ink} strokeWidth="1.4" />
+      <path d={`M ${x + 11} ${y + 13} L ${x + 18} ${y + 18}`} stroke={ink} strokeWidth="1.4" />
       <path
         d={`M ${x + 3} ${y + 7} l 4 7 6 -2`}
         fill="none"
         stroke={ink}
         strokeWidth="1.2"
       />
-      <Txt x={x} y={y + 30} anchor="middle" size={10}>
+      <Txt x={x} y={y + 34} anchor="middle" size={10}>
         {name}
+      </Txt>
+    </g>
+  );
+}
+
+/**
+ * Off-page net. The stub starts at (x, y) and runs toward the circuit
+ * (to the right for "in", to the left for "out").
+ */
+export function Port({
+  x,
+  y,
+  label,
+  dir = "in",
+}: {
+  x: number;
+  y: number;
+  label: string;
+  dir?: "in" | "out";
+}) {
+  const dx = dir === "in" ? 10 : -10;
+  return (
+    <g>
+      <path d={`M ${x} ${y} h ${dx}`} stroke={ink} strokeWidth="1.5" />
+      <circle cx={x} cy={y} r="2.3" fill={ink} />
+      <Txt
+        x={dir === "in" ? x - 6 : x + 6}
+        y={y + 4}
+        anchor={dir === "in" ? "end" : "start"}
+      >
+        {label}
       </Txt>
     </g>
   );
