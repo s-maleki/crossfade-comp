@@ -17,86 +17,71 @@ export function EnvelopeSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-02"
-      rev="D"
+      rev="E"
       title="Sidechain HPF, precision rectifier, attack / release"
-      viewBox="0 0 1180 520"
-      notes="Attack and release sit on the linear peak detector, before the log converter. An RC discharge is exponential in voltage and therefore linear in dB/s. Precision-rectifier diodes sit inside the op-amp loop so Vf drops out. BAT85 speeds 10–15 kHz envelopes. This detector watches Vbuf, never the compressed output."
+      viewBox="0 0 1200 560"
+      notes="Attack and release sit on the linear peak detector, before the log converter. An RC discharge is exponential in voltage and therefore linear in dB/s. Precision-rectifier diodes sit inside the op-amp loop so Vf drops out. BAT85 speeds 10–15 kHz envelopes. This detector watches Vbuf, never the compressed output. S1 (not drawn) shorts C20 to bypass; fc ≈ 72 Hz. Attack τ = (1 kΩ + RV3) · 1 µF = 1–51 ms. Release τ = (47 kΩ + RV4) · 1 µF = 47 ms–1.05 s. V(t) = V0 e^(−t/τ) so dB falls at 8.69/τ dB/s. The 1 kΩ minimum on attack prevents diode-charge clicks. 20 dB in 10 ms is 2 dB/ms — PT2257 I²C (~0.3 ms/write) can follow. A 1 ms attack needs LM1972. Diodes switch at 20–30 kHz; residual 2f stays on C21 and never enters the audio path."
     >
-      <Txt x={24} y={26} size={12} weight="bold">
+      <Txt x={24} y={28} size={12} weight="bold">
         HPF and full-wave rectifier
       </Txt>
 
-      <Port x={36} y={80} label="Vbuf" />
-      <CapH x1={46} x2={140} y={80} refDes="C20" value="22n" />
-      <Dot x={140} y={80} />
-      <ResistorV x={140} y1={80} y2={150} refDes="R20" value="100k" />
-      <Gnd x={140} y={150} />
-      <Wire d="M 140 80 V 64 H 200" />
-      <OpAmp x={200} y={80} name="U1D" />
-      <Wire d="M 200 96 H 188 V 130 H 264 V 80" />
-      <Wire d="M 264 80 H 300" />
-      <Dot x={300} y={80} />
-      <Txt x={24} y={178} size={10}>
-        S1 shorts C20 to bypass · fc ~ 72 Hz
-      </Txt>
+      <Port x={36} y={100} label="Vbuf" />
+      <CapH x1={48} x2={140} y={100} refDes="C20" value="22n" />
+      <Dot x={140} y={100} />
+      <ResistorV x={140} y1={100} y2={180} refDes="R20" value="100k" label="left" />
+      <Gnd x={140} y={180} />
+      <Wire d="M 140 100 V 84 H 188" />
+      <OpAmp x={188} y={100} name="U1D" />
+      <Wire d="M 188 116 H 174 V 158 H 252 V 100" />
+      <Wire d="M 252 100 H 300" />
+      <Dot x={300} y={100} />
 
-      <ResistorH x1={300} x2={380} y={80} refDes="R30" value="10k" />
-      <Wire d="M 380 80 V 96 H 420" />
-      <Dot x={380} y={96} />
-      <OpAmp x={420} y={80} name="U3A" />
-      <Wire d="M 420 64 H 400 V 150" />
-      <Gnd x={400} y={150} />
+      <ResistorH x1={300} x2={390} y={100} refDes="R30" value="10k" />
+      <Wire d="M 390 100 V 116 H 430" />
+      <Dot x={390} y={116} />
+      <OpAmp x={430} y={100} name="U3A" />
+      <Wire d="M 430 84 H 412 V 190" />
+      <Gnd x={412} y={190} />
 
-      <Dot x={484} y={80} />
-      <DiodeH x1={484} x2={560} y={80} refDes="D2" />
-      <Dot x={560} y={80} />
-      <DiodeH x1={484} x2={420} y={112} refDes="D3" />
-      <Wire d="M 484 80 V 112" />
-      <Wire d="M 420 112 V 96" />
-      <ResistorH x1={560} x2={420} y={48} refDes="R31" value="10k" />
-      <Wire d="M 560 48 V 80" />
-      <Wire d="M 420 48 V 96" />
+      <Dot x={494} y={100} />
+      <DiodeH x1={494} x2={580} y={100} refDes="D2" />
+      <Dot x={580} y={100} />
+      <Wire d="M 494 100 V 148" />
+      <DiodeH x1={494} x2={430} y={148} refDes="D3" label="below" />
+      <Wire d="M 430 148 V 116" />
+      <ResistorH x1={580} x2={430} y={52} refDes="R31" value="10k" />
+      <Wire d="M 580 52 V 100" />
+      <Wire d="M 430 52 V 116" />
 
-      <ResistorH x1={560} x2={680} y={80} refDes="R32" value="10k" />
-      <Wire d="M 680 80 V 64 H 720" />
-      <OpAmp x={720} y={80} name="U3B" />
-      <ResistorH x1={784} x2={720} y={96} refDes="R33" value="10k" />
-      <Wire d="M 784 80 V 96" />
-      <Wire d="M 784 80 H 840" />
-      <Dot x={840} y={80} />
-      <Txt x={850} y={76}>Vrect</Txt>
+      <ResistorH x1={580} x2={700} y={100} refDes="R32" value="10k" />
+      <Wire d="M 700 100 V 84 H 740" />
+      <OpAmp x={740} y={100} name="U3B" />
+      <ResistorH x1={804} x2={740} y={148} refDes="R33" value="10k" label="below" />
+      <Wire d="M 804 100 V 148" />
+      <Wire d="M 740 148 V 116" />
+      <Wire d="M 804 100 H 880" />
+      <Dot x={880} y={100} />
+      <Port x={880} y={100} label="Vrect" dir="out" />
 
-      <Txt x={24} y={230} size={12} weight="bold">
+      <Txt x={24} y={250} size={12} weight="bold">
         Peak detector · attack / release
       </Txt>
-      <Wire d="M 840 80 V 270 H 80" />
-      <DiodeH x1={80} x2={160} y={270} refDes="D4 BAT85" />
-      <ResistorH x1={160} x2={290} y={270} refDes="RV3" value="1k+50k att" />
-      <Dot x={290} y={270} />
-      <CapV x={290} y1={270} y2={350} refDes="C21" value="1u" />
-      <Gnd x={290} y={350} />
-      <Wire d="M 290 270 H 360" />
-      <Dot x={360} y={270} />
-      <ResistorV x={360} y1={270} y2={350} refDes="RV4" value="47k+1M rel" />
-      <Gnd x={360} y={350} />
-      <Wire d="M 360 270 H 520" />
-      <OpAmp x={520} y={286} name="U3C" />
-      <Wire d="M 520 302 H 508 V 340 H 584 V 286" />
-      <Wire d="M 584 286 H 680" />
-      <Port x={680} y={286} label="Venv" dir="out" />
-
-      <Txt x={24} y={410} size={10}>
-        Attack tau = (1k + RV3) * 1u = 1 ms to 51 ms. Release tau = (47k + RV4) * 1u = 47 ms to 1.05 s.
-      </Txt>
-      <Txt x={24} y={430} size={10}>
-        V(t) = V0 e^(-t/tau) so dB falls at 8.69/tau dB per second. The 1k minimum on attack prevents diode-charge clicks.
-      </Txt>
-      <Txt x={24} y={450} size={10}>
-        20 dB in 10 ms is 2 dB/ms — PT2257 I2C (~0.3 ms/write) can follow. A 1 ms attack needs LM1972.
-      </Txt>
-      <Txt x={24} y={470} size={10}>
-        10–15 kHz audio: diodes switch at 20–30 kHz. Residual 2f stays on C21 and never enters the audio path.
-      </Txt>
+      <Port x={36} y={320} label="Vrect" />
+      <DiodeH x1={48} x2={140} y={320} refDes="D4 BAT85" />
+      <ResistorH x1={140} x2={280} y={320} refDes="RV3" value="1k+50k att" />
+      <Dot x={280} y={320} />
+      <CapV x={280} y1={320} y2={410} refDes="C21" value="1u" />
+      <Gnd x={280} y={410} />
+      <Wire d="M 280 320 H 360" />
+      <Dot x={360} y={320} />
+      <ResistorV x={360} y1={320} y2={410} refDes="RV4" value="47k+1M rel" />
+      <Gnd x={360} y={410} />
+      <Wire d="M 360 320 V 304 H 430" />
+      <OpAmp x={430} y={320} name="U3C" />
+      <Wire d="M 430 336 H 416 V 378 H 494 V 320" />
+      <Wire d="M 494 320 H 580" />
+      <Port x={580} y={320} label="Venv DWG-03" dir="out" />
     </SchematicFrame>
   );
 }

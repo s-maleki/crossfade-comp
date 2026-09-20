@@ -42,6 +42,7 @@ export function SchematicFrame({
 }
 
 export const ink = "#1f1b16";
+export const paper = "#f3eee3";
 
 export function Txt({
   x,
@@ -67,6 +68,10 @@ export function Txt({
       fontSize={size}
       fontWeight={weight}
       textAnchor={anchor}
+      stroke={paper}
+      strokeWidth={size >= 12 ? 4.5 : 3.4}
+      paintOrder="stroke"
+      strokeLinejoin="round"
     >
       {children}
     </text>
@@ -105,12 +110,14 @@ export function ResistorH({
   y,
   refDes,
   value,
+  label = "above",
 }: {
   x1: number;
   x2: number;
   y: number;
   refDes: string;
   value: string;
+  label?: "above" | "below";
 }) {
   const mid = (x1 + x2) / 2;
   const z = 24;
@@ -124,7 +131,7 @@ export function ResistorH({
         strokeWidth="1.5"
       />
       <path d={`M ${mid + z} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={mid} y={y - 12} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 12 : y + 20} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -137,12 +144,14 @@ export function ResistorV({
   y2,
   refDes,
   value,
+  label = "right",
 }: {
   x: number;
   y1: number;
   y2: number;
   refDes: string;
   value: string;
+  label?: "right" | "left";
 }) {
   const mid = (y1 + y2) / 2;
   const z = 24;
@@ -156,7 +165,11 @@ export function ResistorV({
         strokeWidth="1.5"
       />
       <path d={`M ${x} ${mid + z} V ${y2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={x + 12} y={mid + 4}>
+      <Txt
+        x={label === "right" ? x + 12 : x - 12}
+        y={mid + 4}
+        anchor={label === "right" ? "start" : "end"}
+      >
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -169,12 +182,14 @@ export function CapH({
   y,
   refDes,
   value,
+  label = "above",
 }: {
   x1: number;
   x2: number;
   y: number;
   refDes: string;
   value: string;
+  label?: "above" | "below";
 }) {
   const mid = (x1 + x2) / 2;
   return (
@@ -183,7 +198,7 @@ export function CapH({
       <path d={`M ${mid - 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${mid + 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${mid + 5} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={mid} y={y - 16} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 16 : y + 24} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -197,12 +212,14 @@ export function TrimmerCapH({
   y,
   refDes,
   value,
+  label = "above",
 }: {
   x1: number;
   x2: number;
   y: number;
   refDes: string;
   value: string;
+  label?: "above" | "below";
 }) {
   const mid = (x1 + x2) / 2;
   return (
@@ -222,7 +239,7 @@ export function TrimmerCapH({
         stroke={ink}
         strokeWidth="1.3"
       />
-      <Txt x={mid} y={y - 20} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 20 : y + 28} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -235,12 +252,14 @@ export function CapV({
   y2,
   refDes,
   value,
+  label = "right",
 }: {
   x: number;
   y1: number;
   y2: number;
   refDes: string;
   value: string;
+  label?: "right" | "left";
 }) {
   const mid = (y1 + y2) / 2;
   return (
@@ -249,7 +268,11 @@ export function CapV({
       <path d={`M ${x - 11} ${mid - 5} h 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${x - 11} ${mid + 5} h 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${x} ${mid + 5} V ${y2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={x + 14} y={mid + 4}>
+      <Txt
+        x={label === "right" ? x + 14 : x - 14}
+        y={mid + 4}
+        anchor={label === "right" ? "start" : "end"}
+      >
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -297,11 +320,13 @@ export function DiodeH({
   x2,
   y,
   refDes,
+  label = "above",
 }: {
   x1: number;
   x2: number;
   y: number;
   refDes: string;
+  label?: "above" | "below";
 }) {
   const mid = (x1 + x2) / 2;
   const dir = x2 >= x1 ? 1 : -1;
@@ -318,7 +343,7 @@ export function DiodeH({
       />
       <path d={`M ${tip} ${y - 9} v 18`} stroke={ink} strokeWidth="1.5" />
       <path d={`M ${tip} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={mid} y={y - 14} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 18 : y + 22} anchor="middle">
         {refDes}
       </Txt>
     </g>
@@ -352,7 +377,7 @@ export function Npn({
         stroke={ink}
         strokeWidth="1.2"
       />
-      <Txt x={x} y={y + 34} anchor="middle" size={10}>
+      <Txt x={x - 22} y={y + 4} anchor="end" size={10}>
         {name}
       </Txt>
     </g>
@@ -407,7 +432,7 @@ export function Jfet({
       <path d={`M ${x - 5} ${y - 7} H ${x + 11}`} stroke={ink} strokeWidth="1.4" />
       <path d={`M ${x - 5} ${y + 7} H ${x + 11}`} stroke={ink} strokeWidth="1.4" />
       <path d={`M ${x - 18} ${y} H ${x - 5}`} stroke={ink} strokeWidth="1.4" />
-      <Txt x={x} y={y + 32} anchor="middle" size={10}>
+      <Txt x={x + 22} y={y + 5} size={10}>
         {name}
       </Txt>
     </g>

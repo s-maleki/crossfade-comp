@@ -36,7 +36,7 @@ export function CgdCompensationLayout() {
   return (
     <SchematicFrame
       dwg="DWG-04A"
-      rev="C"
+      rev="D"
       title="JFET island · neutralization layout (top copper, viewed from component side)"
       viewBox="0 0 1180 640"
       notes="Keep the cancel current in a few millimetres of copper. CV1’s drain pad is the same node as Q10 pin 1 — no via, no stub. Vgs and Vgs_inv run as a tight pair from U2C/U2D and only meet the audio node at Cgd (inside the FET) and at CV1. Source pin 2 goes to AGND with a via under the body. The 7660 charge pump stays off this island."
@@ -200,13 +200,13 @@ export function CgdCompensationLayout() {
         stroke="#3d5a3a"
         strokeWidth="1.6"
       />
-      <Txt x={250} y={314} size={10}>
+      <Txt x={250} y={168} size={10}>
         Vgs
       </Txt>
-      <Txt x={250} y={340} size={10}>
+      <Txt x={250} y={338} size={10}>
         Vgs_inv
       </Txt>
-      <Balloon x={300} y={300} n={6} />
+      <Balloon x={370} y={348} n={6} />
 
       <rect
         x={390}

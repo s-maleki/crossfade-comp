@@ -28,11 +28,12 @@ export default async function SchematicsPage({
           <h2 className="font-heading text-3xl text-amber-50">Schematics</h2>
           <p className="mt-3 leading-relaxed text-muted-foreground">
             Working prototype values. Op-amps are TL074/TL072 on ±9 V. Every
-            net on these drawings lands on a pin, a junction, or an off-page
-            port. The voltage-controlled element is a 2N5457 used as a
-            linearized VCR on the 1 dB difference, not an LM13700 on the
-            guitar signal. DWG-04 adds Miller neutralization: U2D inverts Vgs
-            and CV1 dumps the opposite charge onto the JFET drain.
+            net lands on a pin, a junction, or a named port — long nets do not
+            wrap the sheet. Refdes sit off the wires. The voltage-controlled
+            element is a 2N5457 used as a linearized VCR on the 1 dB
+            difference, not an LM13700 on the guitar signal. DWG-04 adds
+            Miller neutralization: U2D inverts Vgs and CV1 dumps the opposite
+            charge onto the JFET drain.
           </p>
         </div>
         <Tabs defaultValue={defaultValue}>
