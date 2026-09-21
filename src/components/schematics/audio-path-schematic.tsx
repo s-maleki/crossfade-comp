@@ -103,7 +103,7 @@ export function AudioPathSchematic() {
       <Wire d="M 1144 250 H 1195" />
       <Port x={1195} y={250} label="VA" dir="out" />
 
-      <Txt x={24} y={348} size={12} weight="bold">
+      <Txt x={24} y={318} size={12} weight="bold">
         Makeup after interpolator
       </Txt>
       <Port x={36} y={440} label="Vmix" />
@@ -114,9 +114,9 @@ export function AudioPathSchematic() {
       <Dot x={168} y={456} />
       <ResistorV x={168} y1={456} y2={530} refDes="R40" value="10k" label="left" />
       <Gnd x={168} y={530} />
-      <ResistorH x1={254} x2={168} y={372} refDes="RV2" value="100k" />
-      <Wire d="M 254 372 V 440" />
-      <Wire d="M 168 372 V 456" />
+      <ResistorH x1={254} x2={168} y={365} refDes="RV2" value="100k" />
+      <Wire d="M 254 365 V 440" />
+      <Wire d="M 168 365 V 456" />
       <Wire d="M 254 440 H 300" />
       <ResistorH x1={300} x2={400} y={440} refDes="R41" value="220" />
       <CapH x1={400} x2={500} y={440} refDes="C19" value="10u" />

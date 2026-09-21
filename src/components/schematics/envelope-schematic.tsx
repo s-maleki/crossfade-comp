@@ -47,9 +47,9 @@ export function EnvelopeSchematic() {
       <Dot x={494} y={100} />
       <DiodeH x1={494} x2={580} y={100} refDes="D2" />
       <Dot x={580} y={100} />
-      <Wire d="M 494 100 V 152" />
-      <DiodeH x1={494} x2={400} y={152} refDes="D3" label="below" />
-      <Wire d="M 400 152 V 116 H 430" />
+      <Wire d="M 494 100 V 176" />
+      <DiodeH x1={494} x2={400} y={176} refDes="D3" label="below" />
+      <Wire d="M 400 176 V 116 H 430" />
       <Dot x={400} y={116} />
       <ResistorH x1={580} x2={400} y={44} refDes="R31" value="10k" />
       <Wire d="M 580 44 V 100" />
