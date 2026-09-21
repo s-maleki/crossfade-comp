@@ -16,10 +16,10 @@ export function DigitalIcSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-05"
-      rev="G"
+      rev="H"
       title="PT2257 control, Arduino Nano leapfrog, VN staircase"
       viewBox="0 0 1200 560"
-      notes="The microcontroller never touches audio. It watches VGR, writes the idle PT2257 channel, and emits the integer-dB staircase VN. I²C pull-ups go to +5 V; PT2257 VDD is +9 V so 5 V is a legal HIGH (VIH min is 0.4 VDD = 3.6 V). Wait 200 ms after 9 V appears before the first transaction. Always send the 10 dB byte first so a decade crossing glitches mute-ward. Address 0x44. Left: 0xB0|tens then 0xA0|ones. Right: 0x30|tens then 0x20|ones. Never a 2-channel command. Never rewrite the live tap. Hysteresis 0.08 dB. Isolation gate: idle mix weight under 2 %. Mute 0x78/0x79. Init after 200 ms: unmute, A=0 dB, B=1 dB, VN=0. D2 high on odd N so the analog Vk inverter triangles k through 0-1-0 at each 1 dB boundary."
+      notes="The microcontroller never touches audio. It watches VGR and writes the idle PT2257 channel. Blank EEPROM: D3 is the integer-dB staircase VN and D2 is high on odd N so the analog Vk inverter triangles k. A valid ladder table: D9 is 10-bit Vk (weight of channel B), D2 stays low, and the Vk jumper moves from U5B to the D9 filter. I²C pull-ups go to +5 V; PT2257 VDD is +9 V so 5 V is a legal HIGH (VIH min is 0.4 VDD = 3.6 V). Wait 200 ms after 9 V appears before the first transaction. Always send the 10 dB byte first so a decade crossing glitches mute-ward. Address 0x44. Left: 0xB0|tens then 0xA0|ones. Right: 0x30|tens then 0x20|ones. Never a 2-channel command. Never rewrite the live tap. Hysteresis 0.08 dB. Isolation gate: idle mix weight under 2 %. Mute 0x78/0x79. Init after 200 ms: unmute, A=0 dB, B=1 dB. Serial 115200 is the bench cal port only."
     >
       <Txt x={24} y={22} size={12} weight="bold">
         Leapfrog controller
@@ -34,6 +34,7 @@ export function DigitalIcSchematic() {
           { side: "L", n: 5, label: "+5V", yy: 88 },
           { side: "L", n: 3, label: "GND", yy: 340 },
           { side: "R", n: 4, label: "SDA A4", yy: 120 },
+          { side: "R", n: 9, label: "PWM D9", yy: 160 },
           { side: "R", n: 5, label: "SCL A5", yy: 200 },
           { side: "R", n: 3, label: "PWM D3", yy: 250 },
           { side: "R", n: 2, label: "A2 VGR", yy: 295 },
@@ -82,6 +83,8 @@ export function DigitalIcSchematic() {
       <Port x={920} y={240} label="ROUT = VB" dir="out" />
 
       <Wire d="M 272 120 H 628" />
+      <Wire d="M 272 160 H 330" />
+      <Port x={330} y={160} label="Vk cal" dir="out" />
       <Wire d="M 272 200 H 628" />
       <Dot x={360} y={120} />
       <Dot x={440} y={200} />

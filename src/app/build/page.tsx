@@ -40,6 +40,8 @@ export default function BuildPage() {
               <Row k="SNR @ 100 mV" v="~82 dB A-wtd" />
               <Row k="GR range" v="0–40 dB (chip to 79 dB)" />
               <Row k="Interpolation error" v="≤ 0.015 dB / tap" />
+              <Row k="GERR / CERR, raw" v="0.5 dB typical each" />
+              <Row k="Law error, calibrated" v="≤ 0.05 dB after bench RMS" />
               <Row k="Min attack (PT2257)" v="~5 ms for 20 dB GR" />
               <Row k="Min attack (LM1972)" v="~1 ms" />
               <Row k="Cgd tick, uncancelled" v="~1.2 mV / −41 dB on 100 mV" />
@@ -240,6 +242,90 @@ export default function BuildPage() {
 
         <Card>
           <CardHeader>
+            <CardTitle>Calibrate the PT2257 ladder once</CardTitle>
+            <CardDescription>
+              GERR and CERR are properties of this chip, not of the room. Measure
+              them on the bench and store the table in EEPROM. Blank EEPROM keeps
+              the analog VN path.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
+            <ol className="list-decimal space-y-3 pl-5">
+              <li>
+                Unplug the output. Feed about 200 mVrms at 1 kHz into the input
+                — the datasheet THD condition, well under the 2.3 Vrms clip.
+                Meter AC RMS on VA and VB, the U1B and U1C outputs.
+              </li>
+              <li>
+                Open the serial port at 115200.{" "}
+                <span className="font-mono text-foreground">G &lt;code&gt;</span>{" "}
+                sets both PT2257 channels to that code and freezes leapfrog.
+                The reply includes <span className="font-mono text-foreground">N</span>
+                : 8 readings at codes 0–15, 16 at 16–24, 32 at 25–41.{" "}
+                <span className="font-mono text-foreground">N 16</span> forces a
+                count; <span className="font-mono text-foreground">N auto</span>{" "}
+                restores the schedule. The Nano has no tap ADC — type the meter
+                volts.
+              </li>
+              <li>
+                Do code 0 on A first. Send that many{" "}
+                <span className="font-mono text-foreground">VA &lt;volts&gt;</span>{" "}
+                lines, then the same for{" "}
+                <span className="font-mono text-foreground">VB</span>. The sketch
+                averages the volts, then computes{" "}
+                <span className="font-mono text-foreground">
+                  att = −20 log10(mean V / VA(0))
+                </span>
+                . The reply carries std, peak-to-peak, min, and max of the
+                sample cloud, and says CLEAN or NOISY. CLEAN is peak-to-peak
+                within 0.05 dB (codes 0–15), 0.10 dB (16–24), or 0.20 dB
+                (25–41). NOISY on a shallow code is a connector or a ground
+                loop. NOISY on a deep code means the mean is the meter, not the
+                ladder — reseat, shorten the leads, and repeat that code.{" "}
+                <span className="font-mono text-foreground">W</span> will not
+                store a NOISY code; <span className="font-mono text-foreground">W!</span>{" "}
+                does, if you mean it.
+              </li>
+              <li>
+                <span className="font-mono text-foreground">W</span> writes the
+                table once every code is CLEAN. The Nano then takes Vk from
+                10-bit PWM on D9 and holds D2 low. Move the Vk jumper from U5B
+                to the D9 filter (R84, C32).{" "}
+                <span className="font-mono text-foreground">Z</span> clears the
+                magic; move the jumper back to U5B and D3/D2 run the analog
+                staircase again.
+              </li>
+              <li>
+                Once per design, not on every board: re-measure codes 5, 15,
+                25, 35, and 40 at 100 Hz, at 5 kHz, and at 2.0 Vrms / 1 kHz
+                (under the 2.3 Vrms ceiling). Send each millidB with{" "}
+                <span className="font-mono text-foreground">P</span>. A delta
+                inside 0.10 dB logs OK and changes nothing. A FLAG is not
+                averaged into the table. That code depends on frequency or
+                level, and the 1 kHz / 200 mV row stays.
+              </li>
+              <li>
+                With a valid table, commanded GR is mapped onto the measured
+                anchors. k is the exact amplitude mix between those taps, not
+                the fractional dB. A code that does not rise is skipped and the
+                idle channel is written two or more codes ahead. The idle-channel
+                rule is unchanged: a tap is rewritten only while its mix weight
+                is under 2 %.
+              </li>
+            </ol>
+            <p>
+              A single trimmer is the fallback when you will not run the table.
+              About 1 kΩ in series with the hotter of VA or VB, into the 10 kΩ
+              crossfader resistors, pads that channel by up to ~0.8 dB. Program
+              both codes to −20 dB and trim until VA equals VB. That removes the
+              flat CERR only. If you do both, freeze the trimmer before you
+              measure the table.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
             <CardTitle>Fundamental limits of this architecture</CardTitle>
             <CardDescription>
               None of these send you back to an OTA as the gain element. They
@@ -249,11 +335,16 @@ export default function BuildPage() {
           </CardHeader>
           <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
             <p>
-              The two taps are only as adjacent as the IC’s matching. PT2257
-              inter-channel error is specified at 0.5 dB. Interpolation is still
-              continuous, but the local slope in dB/k can be 0.5–1.5 dB per
-              unit k instead of 1.00. LM1972 step error is ±0.05 dB below 48 dB
-              GR and is the right part if you care.
+              Uncalibrated, the two taps are only as adjacent as the IC’s
+              matching. PT2257 GERR and CERR are each 0.5 dB typical, so the
+              local slope can be 0.5–1.5 dB per commanded dB. The bench table
+              above removes that static ladder error at 1 kHz / 200 mVrms.
+              What remains is the averaged meter reading, about 0.05 dB, plus
+              I²C speed and click. A spot-check FLAG means that code also
+              moves with frequency or level; the table is not patched to hide
+              it. LM1972 step error is ±0.05 dB below 48 dB GR and is still the
+              right part if you do not want to calibrate, or if a write still
+              ticks.
             </p>
             <p>
               Integer and fractional parts must stay synchronized. The analog
@@ -318,7 +409,7 @@ export default function BuildPage() {
             <p>hardware/spice/interpolation.cir — mix-law check</p>
             <p>hardware/spice/sidechain.cir — rectifier / AR / log</p>
             <p>hardware/spice/cgd_neutralize.cir — drain tick with / without CV1</p>
-            <p>scripts/verify-math.ts — interpolation identities + Cgd sizing</p>
+            <p>scripts/verify-math.ts — interpolation, Cgd, and ladder calibration</p>
           </CardContent>
         </Card>
       </main>
