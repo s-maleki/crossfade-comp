@@ -1,5 +1,12 @@
 import type { ReactNode } from "react";
 
+function paddedViewBox(viewBox: string) {
+  const p = viewBox.split(/\s+/).map(Number);
+  if (p.length !== 4 || p.some((n) => Number.isNaN(n))) return viewBox;
+  const [x, y, w, h] = p;
+  return `${x - 64} ${y - 12} ${w + 96} ${h + 28}`;
+}
+
 export function SchematicFrame({
   dwg,
   title,
@@ -22,9 +29,9 @@ export function SchematicFrame({
         <span className="truncate text-center">{title}</span>
         <span>Rev {rev}</span>
       </figcaption>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto px-3 py-3">
         <svg
-          viewBox={viewBox}
+          viewBox={paddedViewBox(viewBox)}
           className="h-auto w-full min-w-[860px]"
           role="img"
           aria-label={title}
@@ -90,6 +97,36 @@ export function Wire({
   return <path d={d} fill="none" stroke={color} strokeWidth="1.5" />;
 }
 
+/** Semicircle hop: a vertical wire crossing a horizontal net (or the reverse). */
+export function Hop({
+  x,
+  y,
+  dir = "v",
+}: {
+  x: number;
+  y: number;
+  dir?: "v" | "h";
+}) {
+  if (dir === "v") {
+    return (
+      <path
+        d={`M ${x} ${y - 7} A 7 7 0 0 1 ${x} ${y + 7}`}
+        fill={paper}
+        stroke={ink}
+        strokeWidth="1.5"
+      />
+    );
+  }
+  return (
+    <path
+      d={`M ${x - 7} ${y} A 7 7 0 0 0 ${x + 7} ${y}`}
+      fill={paper}
+      stroke={ink}
+      strokeWidth="1.5"
+    />
+  );
+}
+
 export function Dot({ x, y }: { x: number; y: number }) {
   return <circle cx={x} cy={y} r="2.3" fill={ink} />;
 }
@@ -133,7 +170,7 @@ export function ResistorH({
         strokeWidth="1.5"
       />
       <path d={`M ${mid + z} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={mid} y={label === "above" ? y - 12 : y + 20} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 18 : y + 24} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -168,7 +205,7 @@ export function ResistorV({
       />
       <path d={`M ${x} ${mid + z} V ${y2}`} stroke={ink} strokeWidth="1.5" />
       <Txt
-        x={label === "right" ? x + 12 : x - 12}
+        x={label === "right" ? x + 14 : x - 14}
         y={mid + 4}
         anchor={label === "right" ? "start" : "end"}
       >
@@ -200,7 +237,7 @@ export function CapH({
       <path d={`M ${mid - 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${mid + 5} ${y - 11} v 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${mid + 5} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={mid} y={label === "above" ? y - 16 : y + 24} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 22 : y + 26} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -241,7 +278,7 @@ export function TrimmerCapH({
         stroke={ink}
         strokeWidth="1.3"
       />
-      <Txt x={mid} y={label === "above" ? y - 20 : y + 28} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 24 : y + 32} anchor="middle">
         {`${refDes} ${value}`}
       </Txt>
     </g>
@@ -271,7 +308,7 @@ export function CapV({
       <path d={`M ${x - 11} ${mid + 5} h 22`} stroke={ink} strokeWidth="1.8" />
       <path d={`M ${x} ${mid + 5} V ${y2}`} stroke={ink} strokeWidth="1.5" />
       <Txt
-        x={label === "right" ? x + 14 : x - 14}
+        x={label === "right" ? x + 16 : x - 16}
         y={mid + 4}
         anchor={label === "right" ? "start" : "end"}
       >
@@ -345,7 +382,7 @@ export function DiodeH({
       />
       <path d={`M ${tip} ${y - 9} v 18`} stroke={ink} strokeWidth="1.5" />
       <path d={`M ${tip} ${y} H ${x2}`} stroke={ink} strokeWidth="1.5" />
-      <Txt x={mid} y={label === "above" ? y - 18 : y + 22} anchor="middle">
+      <Txt x={mid} y={label === "above" ? y - 20 : y + 24} anchor="middle">
         {refDes}
       </Txt>
     </g>
@@ -379,7 +416,7 @@ export function Npn({
         stroke={ink}
         strokeWidth="1.2"
       />
-      <Txt x={x - 22} y={y + 4} anchor="end" size={10}>
+      <Txt x={x - 20} y={y - 28} anchor="end" size={10}>
         {name}
       </Txt>
     </g>
@@ -401,14 +438,14 @@ export function Port({
   label: string;
   dir?: "in" | "out";
 }) {
-  const dx = dir === "in" ? 10 : -10;
+  const dx = dir === "in" ? 12 : -12;
   return (
     <g>
       <path d={`M ${x} ${y} h ${dx}`} stroke={ink} strokeWidth="1.5" />
       <circle cx={x} cy={y} r="2.3" fill={ink} />
       <Txt
-        x={dir === "in" ? x - 6 : x + 6}
-        y={y + 4}
+        x={dir === "in" ? x - 4 : x + 4}
+        y={y - 10}
         anchor={dir === "in" ? "end" : "start"}
       >
         {label}

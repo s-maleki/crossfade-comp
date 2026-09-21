@@ -36,7 +36,7 @@ export function CgdCompensationLayout() {
   return (
     <SchematicFrame
       dwg="DWG-04A"
-      rev="D"
+      rev="F"
       title="JFET island · neutralization layout (top copper, viewed from component side)"
       viewBox="0 0 1180 640"
       notes="Keep the cancel current in a few millimetres of copper. CV1’s drain pad is the same node as Q10 pin 1 — no via, no stub. Vgs and Vgs_inv run as a tight pair from U2C/U2D and only meet the audio node at Cgd (inside the FET) and at CV1. Source pin 2 goes to AGND with a via under the body. The 7660 charge pump stays off this island."
@@ -177,16 +177,10 @@ export function CgdCompensationLayout() {
         stroke="#8a5a12"
         strokeWidth="2.4"
       />
-      <path
-        d="M 590 160 H 490"
-        fill="none"
-        stroke="#8a5a12"
-        strokeWidth="2.4"
-      />
       <Txt x={520} y={148} size={10}>
         Vk′ · 2 mm
       </Txt>
-      <Balloon x={545} y={128} n={5} />
+      <Balloon x={545} y={118} n={5} />
 
       <path
         d="M 200 176 H 360 V 162 H 430"
@@ -195,7 +189,7 @@ export function CgdCompensationLayout() {
         strokeWidth="1.6"
       />
       <path
-        d="M 200 190 H 340 V 320 H 650 V 160"
+        d="M 200 190 V 258 H 710 V 160 H 650"
         fill="none"
         stroke="#3d5a3a"
         strokeWidth="1.6"
@@ -203,10 +197,10 @@ export function CgdCompensationLayout() {
       <Txt x={250} y={168} size={10}>
         Vgs
       </Txt>
-      <Txt x={250} y={338} size={10}>
+      <Txt x={250} y={248} size={10}>
         Vgs_inv
       </Txt>
-      <Balloon x={370} y={348} n={6} />
+      <Balloon x={380} y={278} n={6} />
 
       <rect
         x={390}
@@ -341,7 +335,7 @@ export function CgdCompensationLayout() {
         Cgd current is real at the drain pad. Any extra millimetres of Vk′ trace are inductance the invert
       </Txt>
       <Txt x={56} y={542} size={11}>
-        path does not share, so the null leaves a spike. R73 lives at U2D pin 8, then a short run to CV1 —
+        path does not share, so the null leaves a spike. R73 lives at U2D pin 14, then a short run to CV1 —
       </Txt>
       <Txt x={56} y={560} size={11}>
         not at the drain — so a shorted trimmer cannot glue U2D onto the audio node. Matched Vgs / −Vgs

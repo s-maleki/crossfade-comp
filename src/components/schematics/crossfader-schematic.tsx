@@ -16,7 +16,7 @@ export function CrossfaderSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-04"
-      rev="E"
+      rev="G"
       title="Voltage-controlled crossfader · difference interpolator + Cgd cancel"
       viewBox="0 0 1200 780"
       notes="Vdiff = VB − VA. Half-Vds linearization is R65 (Vgs to gate) and R66 (drain to gate). Parasitic Cgd dumps dVgs/dt onto Vk′; CV1 from −Vgs lands on that same drain (Ctrim ≈ Cgd, typically 2–6 pF at Vds ≈ 0). U2B is an inverting summer, so Vmix is polarity-flipped relative to the guitar — makeup does not care. |B−A|/|A| = 0.1087 at 1 dB. 4 pF · 3.5 V / 0.25 ms into 22 kΩ is a 1.2 mV tick. Do not tap D2 for CV1. Do not snub Vgs with 1 kΩ+1 nF unless you want to slow attack. R73 sits at U2D pin 14; optional 22 pF across R72. Trim RV1: Vk = 5 V, Q10 just pinched off. Vk′ and −Vgs continue on the named ports — they are not wrapped around the sheet."
@@ -66,7 +66,7 @@ export function CrossfaderSchematic() {
 
       <Dot x={310} y={208} />
       <ResistorH x1={310} x2={482} y={208} refDes="R65" value="470k" label="below" />
-      <Wire d="M 310 208 V 416" />
+      <Wire d="M 310 208 V 400" />
       <Txt x={322} y={198}>Vgs</Txt>
 
       <Dot x={640} y={112} />
@@ -99,7 +99,7 @@ export function CrossfaderSchematic() {
       <Wire d="M 264 400 H 310" />
       <Dot x={310} y={400} />
 
-      <Wire d="M 310 400 V 460 H 620 V 416 H 700" />
+      <Wire d="M 310 400 H 620 V 416" />
       <ResistorH x1={620} x2={700} y={416} refDes="R71" value="10k" label="below" />
       <OpAmp x={700} y={400} name="U2D" />
       <Wire d="M 700 384 H 684 V 470" />

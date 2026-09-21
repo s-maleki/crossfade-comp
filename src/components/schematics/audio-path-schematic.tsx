@@ -17,7 +17,7 @@ export function AudioPathSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-01"
-      rev="F"
+      rev="H"
       title="Audio path — input, dual PT2257 taps, makeup"
       viewBox="0 0 1200 640"
       notes="Both PT2257 channels see the same buffered guitar signal. The IC is single-supply and internally biased near VDD/2, so C12–C15 are required. After those caps the interpolator works around analog ground. Keep the two channel layouts symmetrical; 0.5 dB of tracking error is already the IC limit. U1 = TL074 on ±9 V. Makeup U4D is non-inverting, gain 1 + RV2/R40 = 1 to 11. C11 is the RF shunt at U1A’s input, after R11. SCL/SDA leave between the analog rows so they never cut LIN or RIN. Keep PT2257 analog traces away from SCL/SDA."
@@ -87,23 +87,23 @@ export function AudioPathSchematic() {
       <Dot x={1010} y={110} />
       <ResistorV x={1010} y1={110} y2={180} refDes="R16" value="100k" label="left" />
       <Gnd x={1010} y={180} />
-      <Wire d="M 1010 110 V 94 H 1060" />
-      <OpAmp x={1060} y={110} name="U1C" />
-      <Wire d="M 1060 126 H 1046 V 168 H 1124 V 110" />
-      <Wire d="M 1124 110 H 1180" />
-      <Port x={1180} y={110} label="VB" dir="out" />
+      <Wire d="M 1010 110 V 94 H 1080" />
+      <OpAmp x={1080} y={110} name="U1C" />
+      <Wire d="M 1080 126 H 1066 V 168 H 1144 V 110" />
+      <Wire d="M 1144 110 H 1195" />
+      <Port x={1195} y={110} label="VB" dir="out" />
 
       <CapH x1={932} x2={1010} y={250} refDes="C14" value="10u" />
       <Dot x={1010} y={250} />
       <ResistorV x={1010} y1={250} y2={320} refDes="R15" value="100k" label="left" />
       <Gnd x={1010} y={320} />
-      <Wire d="M 1010 250 V 234 H 1060" />
-      <OpAmp x={1060} y={250} name="U1B" />
-      <Wire d="M 1060 266 H 1046 V 308 H 1124 V 250" />
-      <Wire d="M 1124 250 H 1180" />
-      <Port x={1180} y={250} label="VA" dir="out" />
+      <Wire d="M 1010 250 V 234 H 1080" />
+      <OpAmp x={1080} y={250} name="U1B" />
+      <Wire d="M 1080 266 H 1066 V 308 H 1144 V 250" />
+      <Wire d="M 1144 250 H 1195" />
+      <Port x={1195} y={250} label="VA" dir="out" />
 
-      <Txt x={24} y={360} size={12} weight="bold">
+      <Txt x={24} y={348} size={12} weight="bold">
         Makeup after interpolator
       </Txt>
       <Port x={36} y={440} label="Vmix" />
@@ -114,9 +114,9 @@ export function AudioPathSchematic() {
       <Dot x={168} y={456} />
       <ResistorV x={168} y1={456} y2={530} refDes="R40" value="10k" label="left" />
       <Gnd x={168} y={530} />
-      <ResistorH x1={254} x2={168} y={392} refDes="RV2" value="100k" />
-      <Wire d="M 254 392 V 440" />
-      <Wire d="M 168 392 V 456" />
+      <ResistorH x1={254} x2={168} y={372} refDes="RV2" value="100k" />
+      <Wire d="M 254 372 V 440" />
+      <Wire d="M 168 372 V 456" />
       <Wire d="M 254 440 H 300" />
       <ResistorH x1={300} x2={400} y={440} refDes="R41" value="220" />
       <CapH x1={400} x2={500} y={440} refDes="C19" value="10u" />

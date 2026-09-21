@@ -16,7 +16,7 @@ export function ControlLawSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-03"
-      rev="E"
+      rev="G"
       title="Log converter, threshold, ratio, max GR, Vfrac"
       viewBox="0 0 1200 760"
       notes="100 mV per dB is the analog bus from here to the interpolator. Glue Q1/Q2 together; leftover VT tempco is about 0.33 %/°C. Q1 is the transdiode in U3D feedback: Vlog = −VT ln(Iin/Iref) ≈ 3.00 mV/dB at U3D output. U4A scales that to 100 mV/dB. Threshold and ratio are applied in the dB domain so the digital attenuator is programmed in the same units it uses. RV5 0–2.6 V = 0–26 dB. RV7 +4.0 V = 40 dB max GR. U5A is a matched-resistor subtractor so a lagging MCU cannot open k past the far tap. VN is the 1 dB PWM staircase from the Nano. Odd-N GPIO inverts Vk so the analog mix triangles 0-1-0. VdB and VGR continue on the named ports rather than wrapping the sheet."
@@ -103,7 +103,7 @@ export function ControlLawSchematic() {
       <Port x={960} y={446} label="VGR" dir="out" />
 
       <Txt x={24} y={570} size={12} weight="bold">
-        Fractional dB · Vfrac = clamp(VGR − VN, 0, 0.10 V)
+        Fractional dB
       </Txt>
       <Port x={36} y={630} label="VGR" />
       <ResistorH x1={48} x2={150} y={630} refDes="R53" value="10k" />
@@ -122,9 +122,9 @@ export function ControlLawSchematic() {
       <OpAmp x={340} y={646} name="U5B" />
       <ResistorV x={340} y1={662} y2={730} refDes="R55" value="10k" />
       <Gnd x={340} y={730} />
-      <ResistorH x1={404} x2={340} y={600} refDes="R52" value="499k" />
-      <Wire d="M 404 600 V 646" />
-      <Wire d="M 340 600 V 662" />
+      <ResistorH x1={404} x2={340} y={575} refDes="R52" value="499k" />
+      <Wire d="M 404 575 V 646" />
+      <Wire d="M 340 575 V 662" />
       <Wire d="M 404 646 H 560" />
       <Port x={560} y={646} label="Vk 0–5 V DWG-04" dir="out" />
     </SchematicFrame>

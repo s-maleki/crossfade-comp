@@ -1,46 +1,47 @@
 import {
   CapV,
   Chip,
+  Dot,
   Gnd,
+  Hop,
   Port,
   ResistorH,
   ResistorV,
   SchematicFrame,
   Txt,
   Wire,
-  Dot,
 } from "./symbols";
 
 export function DigitalIcSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-05"
-      rev="E"
+      rev="G"
       title="PT2257 control, Arduino Nano leapfrog, VN staircase"
       viewBox="0 0 1200 560"
       notes="The microcontroller never touches audio. It watches VGR, writes the idle PT2257 channel, and emits the integer-dB staircase VN. I²C pull-ups go to +5 V; PT2257 VDD is +9 V so 5 V is a legal HIGH (VIH min is 0.4 VDD = 3.6 V). Wait 200 ms after 9 V appears before the first transaction. Always send the 10 dB byte first so a decade crossing glitches mute-ward. Address 0x44. Left: 0xB0|tens then 0xA0|ones. Right: 0x30|tens then 0x20|ones. Never a 2-channel command. Never rewrite the live tap. Hysteresis 0.08 dB. Isolation gate: idle mix weight under 2 %. Mute 0x78/0x79. Init after 200 ms: unmute, A=0 dB, B=1 dB, VN=0. D2 high on odd N so the analog Vk inverter triangles k through 0-1-0 at each 1 dB boundary."
     >
-      <Txt x={24} y={28} size={12} weight="bold">
+      <Txt x={24} y={22} size={12} weight="bold">
         Leapfrog controller
       </Txt>
       <Chip
         x={50}
         y={56}
         w={210}
-        h={250}
+        h={300}
         name="Arduino Nano"
         pins={[
           { side: "L", n: 5, label: "+5V", yy: 88 },
-          { side: "L", n: 3, label: "GND", yy: 280 },
+          { side: "L", n: 3, label: "GND", yy: 340 },
           { side: "R", n: 4, label: "SDA A4", yy: 120 },
           { side: "R", n: 5, label: "SCL A5", yy: 200 },
-          { side: "R", n: 3, label: "PWM D3", yy: 240 },
-          { side: "R", n: 2, label: "A2 VGR", yy: 270 },
-          { side: "R", n: 2, label: "D2 inv", yy: 296 },
+          { side: "R", n: 3, label: "PWM D3", yy: 250 },
+          { side: "R", n: 2, label: "A2 VGR", yy: 295 },
+          { side: "R", n: 2, label: "D2 inv", yy: 340 },
         ]}
       />
-      <Wire d="M 50 280 H 28" />
-      <Gnd x={28} y={280} />
+      <Wire d="M 50 340 H 28" />
+      <Gnd x={28} y={340} />
       <Wire d="M 50 88 H 28" />
       <Dot x={28} y={88} />
       <Txt x={22} y={76} anchor="end">
@@ -90,20 +91,22 @@ export function DigitalIcSchematic() {
       <Dot x={440} y={46} />
       <ResistorV x={360} y1={46} y2={120} refDes="R80" value="4.7k" label="left" />
       <ResistorV x={440} y1={46} y2={105} refDes="R81" value="4.7k" />
-      <Wire d="M 440 105 V 200" />
+      <Wire d="M 440 105 V 113" />
+      <Hop x={440} y={120} />
+      <Wire d="M 440 127 V 200" />
       <Txt x={452} y={40} size={10}>
         +5 V
       </Txt>
 
-      <Wire d="M 272 270 H 360" />
-      <Port x={360} y={270} label="VGR DWG-03" dir="out" />
-      <Wire d="M 272 296 H 360" />
-      <Port x={360} y={296} label="to U5 / Q11" dir="out" />
+      <Wire d="M 272 295 H 360" />
+      <Port x={360} y={295} label="VGR DWG-03" dir="out" />
+      <Wire d="M 272 340 H 360" />
+      <Port x={360} y={340} label="to U5 / Q11" dir="out" />
 
-      <Txt x={24} y={356} size={12} weight="bold">
+      <Txt x={400} y={380} size={12} weight="bold">
         VN LPF
       </Txt>
-      <Wire d="M 272 240 H 520 V 400" />
+      <Wire d="M 272 250 H 520 V 400" />
       <ResistorH x1={520} x2={620} y={400} refDes="R82" value="1k" />
       <Dot x={620} y={400} />
       <CapV x={620} y1={400} y2={480} refDes="C30" value="100n" />

@@ -17,7 +17,7 @@ export function EnvelopeSchematic() {
   return (
     <SchematicFrame
       dwg="DWG-02"
-      rev="E"
+      rev="G"
       title="Sidechain HPF, precision rectifier, attack / release"
       viewBox="0 0 1200 560"
       notes="Attack and release sit on the linear peak detector, before the log converter. An RC discharge is exponential in voltage and therefore linear in dB/s. Precision-rectifier diodes sit inside the op-amp loop so Vf drops out. BAT85 speeds 10–15 kHz envelopes. This detector watches Vbuf, never the compressed output. S1 (not drawn) shorts C20 to bypass; fc ≈ 72 Hz. Attack τ = (1 kΩ + RV3) · 1 µF = 1–51 ms. Release τ = (47 kΩ + RV4) · 1 µF = 47 ms–1.05 s. V(t) = V0 e^(−t/τ) so dB falls at 8.69/τ dB/s. The 1 kΩ minimum on attack prevents diode-charge clicks. 20 dB in 10 ms is 2 dB/ms — PT2257 I²C (~0.3 ms/write) can follow. A 1 ms attack needs LM1972. Diodes switch at 20–30 kHz; residual 2f stays on C21 and never enters the audio path."
@@ -47,19 +47,20 @@ export function EnvelopeSchematic() {
       <Dot x={494} y={100} />
       <DiodeH x1={494} x2={580} y={100} refDes="D2" />
       <Dot x={580} y={100} />
-      <Wire d="M 494 100 V 148" />
-      <DiodeH x1={494} x2={430} y={148} refDes="D3" label="below" />
-      <Wire d="M 430 148 V 116" />
-      <ResistorH x1={580} x2={430} y={52} refDes="R31" value="10k" />
-      <Wire d="M 580 52 V 100" />
-      <Wire d="M 430 52 V 116" />
+      <Wire d="M 494 100 V 152" />
+      <DiodeH x1={494} x2={400} y={152} refDes="D3" label="below" />
+      <Wire d="M 400 152 V 116 H 430" />
+      <Dot x={400} y={116} />
+      <ResistorH x1={580} x2={400} y={44} refDes="R31" value="10k" />
+      <Wire d="M 580 44 V 100" />
+      <Wire d="M 400 44 V 116" />
 
       <ResistorH x1={580} x2={700} y={100} refDes="R32" value="10k" />
       <Wire d="M 700 100 V 84 H 740" />
       <OpAmp x={740} y={100} name="U3B" />
-      <ResistorH x1={804} x2={740} y={148} refDes="R33" value="10k" label="below" />
-      <Wire d="M 804 100 V 148" />
-      <Wire d="M 740 148 V 116" />
+      <ResistorH x1={804} x2={710} y={176} refDes="R33" value="10k" label="below" />
+      <Wire d="M 804 100 V 176" />
+      <Wire d="M 710 176 V 116 H 740" />
       <Wire d="M 804 100 H 880" />
       <Dot x={880} y={100} />
       <Port x={880} y={100} label="Vrect" dir="out" />
@@ -75,13 +76,13 @@ export function EnvelopeSchematic() {
       <Gnd x={280} y={410} />
       <Wire d="M 280 320 H 360" />
       <Dot x={360} y={320} />
-      <ResistorV x={360} y1={320} y2={410} refDes="RV4" value="47k+1M rel" />
+      <ResistorV x={360} y1={320} y2={410} refDes="RV4" value="47k+1M rel" label="left" />
       <Gnd x={360} y={410} />
-      <Wire d="M 360 320 V 304 H 430" />
-      <OpAmp x={430} y={320} name="U3C" />
-      <Wire d="M 430 336 H 416 V 378 H 494 V 320" />
-      <Wire d="M 494 320 H 580" />
-      <Port x={580} y={320} label="Venv DWG-03" dir="out" />
+      <Wire d="M 360 320 V 304 H 500" />
+      <OpAmp x={500} y={320} name="U3C" />
+      <Wire d="M 500 336 H 486 V 378 H 564 V 320" />
+      <Wire d="M 564 320 H 650" />
+      <Port x={650} y={320} label="Venv DWG-03" dir="out" />
     </SchematicFrame>
   );
 }
