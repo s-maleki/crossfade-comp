@@ -1,11 +1,18 @@
 import {
   alternatingStepLadder,
+  averageMeterSamples,
   buildCalSegments,
   calibrationAt,
   channelOffsetLadder,
+  type LadderErrors,
   ladderErrorsFromRms,
+  meterSpreadIsNoisy,
+  meterSpreadLimitDb,
   peakLawErrors,
   programmedCodes,
+  samplesForCode,
+  SPOT_TOLERANCE_DB,
+  spotCheckDelta,
   stackedEndpointLadder,
   uncorrectedAttenuationDb,
   zeroLadder,
@@ -189,6 +196,85 @@ assert(
   "RMS conversion keeps a flat channel offset",
 );
 
+assert(samplesForCode(0) === 8 && samplesForCode(15) === 8, "shallow codes average 8");
+assert(samplesForCode(16) === 16 && samplesForCode(24) === 16, "mid codes average 16");
+assert(samplesForCode(25) === 32 && samplesForCode(41) === 32, "deep codes average 32");
+assert(samplesForCode(40, 16) === 16, "fixed sample count overrides depth");
+
+const quiet = averageMeterSamples([0.2, 0.2, 0.2, 0.2], 0.2);
+assert(almost(quiet.attDb, 0) && almost(quiet.stdDb, 0), "identical samples average to 0 dB");
+assert(!meterSpreadIsNoisy(0, quiet.peakToPeakDb), "a quiet shallow code is CLEAN");
+
+const shallowScatter = averageMeterSamples([0.2, 0.2 * 10 ** (0.08 / 20)], 0.2);
+assert(
+  meterSpreadIsNoisy(5, shallowScatter.peakToPeakDb),
+  "0.08 dB p-p at a shallow code is NOISY",
+);
+assert(
+  !meterSpreadIsNoisy(35, shallowScatter.peakToPeakDb),
+  "the same 0.08 dB cloud is still inside the deep-code gate",
+);
+const deepScatter = averageMeterSamples([0.002, 0.002 * 10 ** (0.3 / 20)], 0.2);
+assert(
+  meterSpreadIsNoisy(35, deepScatter.peakToPeakDb) &&
+    deepScatter.peakToPeakDb > meterSpreadLimitDb(35),
+  "0.3 dB p-p at code 35 is NOISY",
+);
+assert(
+  almost(deepScatter.attDb, -20 * Math.log10(((0.002 + 0.002 * 10 ** (0.3 / 20)) / 2) / 0.2)),
+  "att comes from the mean voltage",
+);
+
+assert(SPOT_TOLERANCE_DB === 0.1, "spot tolerance is 0.10 dB");
+assert(spotCheckDelta(0.2, 0.25).withinTolerance, "0.05 dB spot delta is inside tolerance");
+assert(spotCheckDelta(0, 0.1).withinTolerance, "0.10 dB spot delta is the limit, not a flag");
+assert(!spotCheckDelta(0, 0.11).withinTolerance, "0.11 dB spot delta flags");
+assert(!spotCheckDelta(-0.2, 0.35).withinTolerance, "a 0.55 dB spot delta flags");
+assert(almost(spotCheckDelta(0.2, 0.25).deltaDb, 0.05), "delta is spot minus table");
+
+// Coarse 10 dB blocks alternate +0.5 and −0.5 dB, held for the whole block.
+// Interior 1 dB steps are exact. The only flat crossings are into the low
+// blocks (codes 10 and 30). Crossings into the high blocks (20 and 40) rise
+// by 2 dB and must not be skipped.
+function decadeBlockLadder(): LadderErrors {
+  const err = Array.from({ length: 42 }, (_, code) =>
+    Math.floor(code / 10) % 2 === 0 ? 0.5 : -0.5,
+  );
+  return { errA: err, errB: [...err] };
+}
+
+const decade = decadeBlockLadder();
+const decadeSegs = buildCalSegments(decade);
+const decadeSkipped = new Set<number>();
+for (const seg of decadeSegs) {
+  for (let code = seg.nearCode + 1; code < seg.farCode; code++) decadeSkipped.add(code);
+}
+assert(
+  decadeSkipped.size === 2 && decadeSkipped.has(10) && decadeSkipped.has(30),
+  `decade-block skip should drop only codes 10 and 30, got ${[...decadeSkipped].join(",")}`,
+);
+assert(
+  decadeSegs.some((seg) => seg.nearCode === 19 && seg.farCode === 20),
+  "the +2 dB step into code 20 must stay a single-code segment",
+);
+assert(
+  decadeSegs.some((seg) => seg.nearCode === 39 && seg.farCode === 40),
+  "the +2 dB step into code 40 must stay a single-code segment",
+);
+assert(
+  decadeSegs.some((seg) => seg.nearCode === 15 && seg.farCode === 16),
+  "an interior step inside a loud-error block must not be skipped",
+);
+const decadeLaw = peakLawErrors(decade);
+assert(
+  decadeLaw.uncorrectedAbsDb > 0.9,
+  `decade-block ladder should leave about 1 dB uncorrected, got ${decadeLaw.uncorrectedAbsDb}`,
+);
+assert(
+  decadeLaw.correctedAbsDb < 1e-6,
+  `decade-block ladder should calibrate out, got ${decadeLaw.correctedAbsDb}`,
+);
+
 console.log("All interpolation / compressor / leapfrog / Cgd / calibration checks passed.");
 console.log(
   `  1 dB linear-mix peak error: ${err1.maxAbsErrorDb.toFixed(4)} dB at k=${err1.atK.toFixed(3)}`,
@@ -197,6 +283,9 @@ console.log(`  Mix of −10 and −11 dB at k=0.5: −${mix10_11_half.toFixed(4)
 console.log(`  Exact k for −10.5 dB: ${kExact.toFixed(4)}`);
 console.log(
   `  0.5 dB CERR law error: ${cerrLaw.uncorrectedAbsDb.toFixed(3)} dB uncorrected, ${cerrLaw.correctedAbsDb.toExponential(1)} dB calibrated`,
+);
+console.log(
+  `  Decade-block law error: ${decadeLaw.uncorrectedAbsDb.toFixed(3)} dB uncorrected, ${decadeLaw.correctedAbsDb.toExponential(1)} dB calibrated`,
 );
 console.log(
   `  2 dB skip-span linear-mix peak: ${err2.maxAbsErrorDb.toFixed(4)} dB`,

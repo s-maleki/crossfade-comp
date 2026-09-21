@@ -75,6 +75,33 @@ export default function MathPage() {
             error, which is where a coarse 10 dB string usually shows up. The
             EEPROM table removes both. Do not trim and then apply an old table.
           </Note>
+          <Note title="Deep codes are averaged">
+            At 200 mVrms in, code 40 is about 2 mV out. One meter sample there
+            is not a 0.05 dB measurement. The bench pass takes 8 readings
+            through code 15, 16 through code 24, and 32 from 25 to 41, averages
+            the volts, then converts. The reply shows the sample cloud. A
+            peak-to-peak wider than 0.05 / 0.10 / 0.20 dB in those three ranges
+            is NOISY: reseat or shield, and do not store it.
+          </Note>
+          <Note title="One frequency is a hypothesis">
+            The stored row is 1 kHz at 200 mVrms. A one-time check, not every
+            board, repeats codes 5, 15, 25, 35, and 40 at 100 Hz, 5 kHz, and
+            2.0 Vrms. The gate is 0.10 dB: twice the 0.05 dB measurement
+            budget, so scatter is not a flag, and above the 0.057 dB mix
+            residual of a skipped 2 dB span, so a flag is the table rather than
+            the interpolator. A flag is logged and left out of EEPROM. If a
+            unit does that, the ladder error at that code depends on frequency
+            or level, and a single-condition table does not remove it.
+          </Note>
+          <Note title="Decade blocks, not coin flips">
+            A regression ladder holds +0.5 dB on even 10 dB blocks and −0.5 dB
+            on odd blocks, the same error on every code inside the block.
+            Interior steps still rise by 1 dB and are not skipped. The crossings
+            into codes 10 and 30 are flat, so those two codes drop. The
+            crossings into 20 and 40 rise by 2 dB and stay single-code steps.
+            Uncorrected, that flat crossing peaks at 1.014 dB. The same map
+            tracks the command.
+          </Note>
         </section>
       </main>
     </div>

@@ -60,3 +60,4 @@ C32,100n film,1,D9 Vk reconstruction,With R84; ~340 Hz, inside a 5 ms attack
 S1,SPST,1,Sidechain HPF bypass,
 Misc,1590BB enclosure,1,Optional pedal box,
 Misc,knobs,5,Attack release threshold ratio makeup,
+Misc,AC RMS meter,1,Bench calibration only,Not fitted. No new audio IC. Deep codes need 32 repeated readings; see firmware README

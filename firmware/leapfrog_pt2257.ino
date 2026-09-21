@@ -11,14 +11,20 @@
   Wait 200 ms after power-up before talking to the chip.
 
   Bench cal, 115200, one command per line. Both channels are referenced to
-  VA at code 0. Stored value is millidB of (attenuation − code).
-    G <code>           both channels to code 0–41, leapfrog frozen
-    A <code> <milli>   stage channel A
-    B <code> <milli>   stage channel B
-    W                  store once every code is staged; Vk moves to D9
-    R                  dump the table
-    Z                  clear the magic; jumper Vk back to U5B
-    U                  leave bench hold without writing
+  VA at code 0. Stored value is millidB of (attenuation − code). The Nano
+  has no tap ADC: meter volts are entered, then averaged here.
+    G <code>                 both channels to code 0–41; replies with N
+    N [auto|<count>]         sample count; default scales 8 / 16 / 32
+    VA <volts>  VB <volts>   one meter reading; the Nth one stages the mean
+    A <code> <milli>         stage a hand-computed error (no spread check)
+    B <code> <milli>         same for channel B
+    P <Hz> <mV> <A|B> <code> <milli>
+                             spot-check vs the table; never writes it
+    W                       store if every code is staged and none are NOISY
+    W!                      store even if a code was NOISY
+    R                       dump the table
+    Z                       clear the magic; jumper Vk back to U5B
+    U                       leave bench hold without writing
 */
 
 #include <EEPROM.h>
@@ -77,7 +83,20 @@ static uint8_t gotB[6];
 static Seg segs[41];
 static uint8_t segCount = 0;
 
-static char line[48];
+static const uint8_t SAMPLE_CAP = 32;
+static int8_t sampleOverride = -1; // -1: 8 / 16 / 32 by code
+static bool benchArmed = false;
+static bool haveRef = false;
+static uint8_t benchCode = 0;
+static float vRef = 0;
+static float sampA[SAMPLE_CAP];
+static float sampB[SAMPLE_CAP];
+static uint8_t sampCountA = 0;
+static uint8_t sampCountB = 0;
+static uint8_t noisyA[6];
+static uint8_t noisyB[6];
+
+static char line[64];
 static uint8_t lineLen = 0;
 
 static uint8_t clampAtt(int db) {
@@ -326,6 +345,220 @@ static bool parseTwoInts(const char *s, long *a, long *b) {
   return true;
 }
 
+static uint8_t samplesForCode(uint8_t code) {
+  if (sampleOverride > 0) return (uint8_t)sampleOverride;
+  if (code <= 15) return 8;
+  if (code <= 24) return 16;
+  return 32;
+}
+
+static float spreadLimitDb(uint8_t code) {
+  if (code <= 15) return 0.05f;
+  if (code <= 24) return 0.10f;
+  return 0.20f;
+}
+
+static void setFlag(uint8_t *bits, uint8_t code, bool on) {
+  uint8_t mask = (uint8_t)(1u << (code & 7));
+  if (on) bits[code >> 3] |= mask;
+  else bits[code >> 3] &= (uint8_t)~mask;
+}
+
+static bool flagAt(const uint8_t *bits, uint8_t code) {
+  return (bits[code >> 3] & (uint8_t)(1u << (code & 7))) != 0;
+}
+
+static int32_t roundMilli(float db) {
+  long milli = lroundf(db * 1000.0f);
+  if (milli > 20000) milli = 20000;
+  if (milli < -20000) milli = -20000;
+  return (int32_t)milli;
+}
+
+static void finishSamples(bool isA) {
+  uint8_t n = isA ? sampCountA : sampCountB;
+  float *buf = isA ? sampA : sampB;
+  float sum = 0;
+  for (uint8_t i = 0; i < n; i++) sum += buf[i];
+  float meanV = sum / (float)n;
+  if (isA && benchCode == 0) {
+    vRef = meanV;
+    haveRef = true;
+  }
+  float attOfMean = -20.0f * log10f(meanV / vRef);
+  float attSum = 0;
+  float attMin = 1e9f;
+  float attMax = -1e9f;
+  for (uint8_t i = 0; i < n; i++) {
+    float att = -20.0f * log10f(buf[i] / vRef);
+    attSum += att;
+    if (att < attMin) attMin = att;
+    if (att > attMax) attMax = att;
+  }
+  float attMean = attSum / (float)n;
+  float acc = 0;
+  for (uint8_t i = 0; i < n; i++) {
+    float d = -20.0f * log10f(buf[i] / vRef) - attMean;
+    acc += d * d;
+  }
+  float stdDb = sqrtf(acc / (float)n);
+  float pp = attMax - attMin;
+  bool noisy = pp > spreadLimitDb(benchCode);
+  int32_t milli = (isA && benchCode == 0) ? 0 : roundMilli(attOfMean - (float)benchCode);
+  if (isA) {
+    errA[benchCode] = (int16_t)milli;
+    markGot(gotA, benchCode);
+    setFlag(noisyA, benchCode, noisy);
+    sampCountA = 0;
+  } else {
+    errB[benchCode] = (int16_t)milli;
+    markGot(gotB, benchCode);
+    setFlag(noisyB, benchCode, noisy);
+    sampCountB = 0;
+  }
+  Serial.print(F("AVG "));
+  Serial.print(isA ? 'A' : 'B');
+  Serial.print(' ');
+  Serial.print(benchCode);
+  Serial.print(' ');
+  Serial.print(milli);
+  Serial.print(F(" n "));
+  Serial.print(n);
+  Serial.print(F(" std "));
+  Serial.print(roundMilli(stdDb));
+  Serial.print(F(" pp "));
+  Serial.print(roundMilli(pp));
+  Serial.print(F(" min "));
+  Serial.print(roundMilli(attMin - attMean));
+  Serial.print(F(" max "));
+  Serial.print(roundMilli(attMax - attMean));
+  Serial.println(noisy ? F(" NOISY") : F(" CLEAN"));
+}
+
+static void pushSample(bool isA, float volts) {
+  if (!benchArmed || !(volts > 0)) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  if (isA) {
+    if (benchCode != 0 && !haveRef) {
+      Serial.println(F("ERR"));
+      return;
+    }
+  } else if (!haveRef) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  uint8_t nNeed = samplesForCode(benchCode);
+  uint8_t *count = isA ? &sampCountA : &sampCountB;
+  float *buf = isA ? sampA : sampB;
+  buf[*count] = volts;
+  (*count)++;
+  if (*count < nNeed) {
+    Serial.print(F("GOT "));
+    Serial.print(isA ? 'A' : 'B');
+    Serial.print(' ');
+    Serial.print(*count);
+    Serial.print('/');
+    Serial.println(nNeed);
+    return;
+  }
+  finishSamples(isA);
+}
+
+static bool anyNoisy() {
+  for (uint8_t i = 0; i < CAL_CODES; i++) {
+    if (flagAt(noisyA, i) || flagAt(noisyB, i)) return true;
+  }
+  return false;
+}
+
+static void printNoisy() {
+  Serial.print(F("NOISY"));
+  for (uint8_t i = 0; i < CAL_CODES; i++) {
+    if (flagAt(noisyA, i)) {
+      Serial.print(' ');
+      Serial.print(i);
+      Serial.print('A');
+    }
+    if (flagAt(noisyB, i)) {
+      Serial.print(' ');
+      Serial.print(i);
+      Serial.print('B');
+    }
+  }
+  Serial.println();
+}
+
+static bool parseVolts(const char *s, float *out) {
+  while (*s == ' ') s++;
+  char *end = nullptr;
+  double volts = strtod(s, &end);
+  if (end == s || !(volts > 0)) return false;
+  *out = (float)volts;
+  return true;
+}
+
+static void handleSpot(const char *s) {
+  while (*s == ' ') s++;
+  char *end = nullptr;
+  long hz = strtol(s, &end, 10);
+  if (end == s || hz <= 0) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  s = end;
+  while (*s == ' ') s++;
+  long mv = strtol(s, &end, 10);
+  if (end == s || mv <= 0) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  s = end;
+  while (*s == ' ') s++;
+  char ch = *s;
+  if (ch != 'A' && ch != 'B') {
+    Serial.println(F("ERR"));
+    return;
+  }
+  s++;
+  while (*s == ' ') s++;
+  long code = strtol(s, &end, 10);
+  if (end == s || code < 0 || code > CAL_LAST) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  s = end;
+  while (*s == ' ') s++;
+  long spot = strtol(s, &end, 10);
+  if (end == s || spot < -20000 || spot > 20000) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  if (!flagAt(ch == 'A' ? gotA : gotB, (uint8_t)code)) {
+    Serial.println(F("ERR"));
+    return;
+  }
+  int16_t table = (ch == 'A') ? errA[code] : errB[code];
+  long delta = spot - (long)table;
+  bool flag = delta > 100 || delta < -100;
+  Serial.print(F("SPOT "));
+  Serial.print(hz);
+  Serial.print(' ');
+  Serial.print(mv);
+  Serial.print(' ');
+  Serial.print(ch);
+  Serial.print(' ');
+  Serial.print(code);
+  Serial.print(F(" table "));
+  Serial.print(table);
+  Serial.print(F(" spot "));
+  Serial.print(spot);
+  Serial.print(F(" delta "));
+  Serial.print(delta);
+  Serial.println(flag ? F(" FLAG") : F(" OK"));
+}
+
 static void dumpTable() {
   Serial.print(F("CAL "));
   Serial.println(calibrated ? 1 : 0);
@@ -357,12 +590,56 @@ static void handleLine(char *text) {
       return;
     }
     benchHold = true;
+    benchArmed = true;
+    benchCode = (uint8_t)code;
+    sampCountA = 0;
+    sampCountB = 0;
     setChannel(true, (uint8_t)code);
     setChannel(false, (uint8_t)code);
     attA = (uint8_t)code;
     attB = (uint8_t)code;
     Serial.print(F("OK "));
-    Serial.println(code);
+    Serial.print(code);
+    Serial.print(F(" N "));
+    Serial.println(samplesForCode(benchCode));
+    return;
+  }
+
+  if (cmd == 'N') {
+    while (*args == ' ') args++;
+    if (*args == 0 || strcmp(args, "auto") == 0) {
+      sampleOverride = -1;
+      sampCountA = 0;
+      sampCountB = 0;
+      Serial.println(F("N auto"));
+      return;
+    }
+    char *end = nullptr;
+    long n = strtol(args, &end, 10);
+    if (end == args || n < 1 || n > SAMPLE_CAP) {
+      Serial.println(F("ERR"));
+      return;
+    }
+    sampleOverride = (int8_t)n;
+    sampCountA = 0;
+    sampCountB = 0;
+    Serial.print(F("N "));
+    Serial.println(n);
+    return;
+  }
+
+  if (cmd == 'V' && (args[0] == 'A' || args[0] == 'B')) {
+    float volts = 0;
+    if (!parseVolts(args + 1, &volts)) {
+      Serial.println(F("ERR"));
+      return;
+    }
+    pushSample(args[0] == 'A', volts);
+    return;
+  }
+
+  if (cmd == 'P') {
+    handleSpot(args);
     return;
   }
 
@@ -377,9 +654,11 @@ static void handleLine(char *text) {
     if (cmd == 'A') {
       errA[code] = (int16_t)milli;
       markGot(gotA, (uint8_t)code);
+      setFlag(noisyA, (uint8_t)code, false);
     } else {
       errB[code] = (int16_t)milli;
       markGot(gotB, (uint8_t)code);
+      setFlag(noisyB, (uint8_t)code, false);
     }
     Serial.print(cmd);
     Serial.print(' ');
@@ -392,6 +671,11 @@ static void handleLine(char *text) {
   if (cmd == 'W') {
     if (!allGot(gotA) || !allGot(gotB)) {
       Serial.println(F("MISSING"));
+      return;
+    }
+    bool forceNoisy = args[0] == '!';
+    if (!forceNoisy && anyNoisy()) {
+      printNoisy();
       return;
     }
     saveTable();

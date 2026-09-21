@@ -259,33 +259,50 @@ export default function BuildPage() {
               <li>
                 Open the serial port at 115200.{" "}
                 <span className="font-mono text-foreground">G &lt;code&gt;</span>{" "}
-                sets both PT2257 channels to that code and freezes leapfrog so
-                the sidechain cannot move the taps while you read the meter.
-                Codes 0 through 41.
+                sets both PT2257 channels to that code and freezes leapfrog.
+                The reply includes <span className="font-mono text-foreground">N</span>
+                : 8 readings at codes 0–15, 16 at 16–24, 32 at 25–41.{" "}
+                <span className="font-mono text-foreground">N 16</span> forces a
+                count; <span className="font-mono text-foreground">N auto</span>{" "}
+                restores the schedule. The Nano has no tap ADC — type the meter
+                volts.
               </li>
               <li>
-                Reference both channels to VA at code 0. For each code,{" "}
+                Do code 0 on A first. Send that many{" "}
+                <span className="font-mono text-foreground">VA &lt;volts&gt;</span>{" "}
+                lines, then the same for{" "}
+                <span className="font-mono text-foreground">VB</span>. The sketch
+                averages the volts, then computes{" "}
                 <span className="font-mono text-foreground">
-                  att = −20 log10(V / VA(0))
+                  att = −20 log10(mean V / VA(0))
                 </span>
-                , and the stored error is{" "}
-                <span className="font-mono text-foreground">
-                  round(1000 × (att − code))
-                </span>{" "}
-                millidB. Send{" "}
-                <span className="font-mono text-foreground">A &lt;code&gt; &lt;milli&gt;</span>{" "}
-                and{" "}
-                <span className="font-mono text-foreground">B &lt;code&gt; &lt;milli&gt;</span>.
-                errA at code 0 is 0. errB at code 0 is the open-tap channel offset.
+                . The reply carries std, peak-to-peak, min, and max of the
+                sample cloud, and says CLEAN or NOISY. CLEAN is peak-to-peak
+                within 0.05 dB (codes 0–15), 0.10 dB (16–24), or 0.20 dB
+                (25–41). NOISY on a shallow code is a connector or a ground
+                loop. NOISY on a deep code means the mean is the meter, not the
+                ladder — reseat, shorten the leads, and repeat that code.{" "}
+                <span className="font-mono text-foreground">W</span> will not
+                store a NOISY code; <span className="font-mono text-foreground">W!</span>{" "}
+                does, if you mean it.
               </li>
               <li>
                 <span className="font-mono text-foreground">W</span> writes the
-                table once every code has been sent. The Nano then takes Vk from
+                table once every code is CLEAN. The Nano then takes Vk from
                 10-bit PWM on D9 and holds D2 low. Move the Vk jumper from U5B
                 to the D9 filter (R84, C32).{" "}
                 <span className="font-mono text-foreground">Z</span> clears the
                 magic; move the jumper back to U5B and D3/D2 run the analog
                 staircase again.
+              </li>
+              <li>
+                Once per design, not on every board: re-measure codes 5, 15,
+                25, 35, and 40 at 100 Hz, at 5 kHz, and at 2.0 Vrms / 1 kHz
+                (under the 2.3 Vrms ceiling). Send each millidB with{" "}
+                <span className="font-mono text-foreground">P</span>. A delta
+                inside 0.10 dB logs OK and changes nothing. A FLAG is not
+                averaged into the table. That code depends on frequency or
+                level, and the 1 kHz / 200 mV row stays.
               </li>
               <li>
                 With a valid table, commanded GR is mapped onto the measured
@@ -321,10 +338,13 @@ export default function BuildPage() {
               Uncalibrated, the two taps are only as adjacent as the IC’s
               matching. PT2257 GERR and CERR are each 0.5 dB typical, so the
               local slope can be 0.5–1.5 dB per commanded dB. The bench table
-              above removes that static ladder error. What remains is the RMS
-              measurement, about 0.05 dB, plus I²C speed and click. LM1972 step
-              error is ±0.05 dB below 48 dB GR and is still the right part if
-              you do not want to calibrate, or if a write still ticks.
+              above removes that static ladder error at 1 kHz / 200 mVrms.
+              What remains is the averaged meter reading, about 0.05 dB, plus
+              I²C speed and click. A spot-check FLAG means that code also
+              moves with frequency or level; the table is not patched to hide
+              it. LM1972 step error is ±0.05 dB below 48 dB GR and is still the
+              right part if you do not want to calibrate, or if a write still
+              ticks.
             </p>
             <p>
               Integer and fractional parts must stay synchronized. The analog

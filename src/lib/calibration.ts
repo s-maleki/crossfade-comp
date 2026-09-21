@@ -7,7 +7,7 @@
  * B(n+1) − A(n) or A(n+1) − B(n) instead of 1.00 dB. The analog 100 mV/dB law
  * then walks the wrong slope.
  *
- * Each channel is measured once. Both RMS readings are referenced to VA at
+ * Each code is an average of repeated meter readings, referenced to VA at
  * code 0, the tap that is live at 0 dB GR, so a static level offset between
  * the channels stays in the B column. Referencing B to its own code 0 would
  * hide that offset and the odd anchors would be wrong. Insertion loss that is
@@ -315,4 +315,114 @@ export function ladderErrorsFromRms(
       return att - code;
     });
   return { errA: toErr(voltsA), errB: toErr(voltsB) };
+}
+
+/**
+ * How many meter readings to average at one code.
+ * Shallow taps are tens to hundreds of millivolts at the 200 mV bench level.
+ * From code 25 the output is a few millivolts, so the meter — not the ladder —
+ * is the noise. A fixed override replaces the schedule for the whole pass.
+ */
+export const METER_SAMPLE_CAP = 32;
+
+export function samplesForCode(code: number, fixedCount?: number): number {
+  if (fixedCount !== undefined) {
+    if (fixedCount < 1 || fixedCount > METER_SAMPLE_CAP) {
+      throw new Error(`sample count ${fixedCount} is outside 1..${METER_SAMPLE_CAP}`);
+    }
+    return fixedCount;
+  }
+  if (code < 0 || code > CAL_LAST_CODE) throw new Error(`code ${code} out of range`);
+  if (code <= 15) return 8;
+  if (code <= 24) return 16;
+  return 32;
+}
+
+export type MeterAverage = {
+  /** Mean of the sample voltages. att is computed from this, not from the mean of the dB values. */
+  meanVolts: number;
+  attDb: number;
+  /** Population stddev of the per-sample attenuations, dB. */
+  stdDb: number;
+  /** Per-sample attenuation minus the mean of those attenuations, dB. */
+  minOffsetDb: number;
+  maxOffsetDb: number;
+  peakToPeakDb: number;
+};
+
+/**
+ * Average the volt readings first, then convert. Averaging decibels would bias
+ * the estimate toward the quieter samples.
+ */
+export function averageMeterSamples(
+  volts: readonly number[],
+  vRef: number,
+): MeterAverage {
+  if (volts.length === 0) throw new Error("no samples");
+  if (vRef <= 0) throw new Error("vRef must be positive");
+  let sum = 0;
+  for (const v of volts) {
+    if (!(v > 0)) throw new Error("non-positive sample");
+    sum += v;
+  }
+  const meanVolts = sum / volts.length;
+  const attDb = -20 * Math.log10(meanVolts / vRef);
+  const atts = volts.map((v) => -20 * Math.log10(v / vRef));
+  const meanAtt = atts.reduce((a, b) => a + b, 0) / atts.length;
+  let acc = 0;
+  let minAtt = Infinity;
+  let maxAtt = -Infinity;
+  for (const att of atts) {
+    const d = att - meanAtt;
+    acc += d * d;
+    if (att < minAtt) minAtt = att;
+    if (att > maxAtt) maxAtt = att;
+  }
+  return {
+    meanVolts,
+    attDb,
+    stdDb: Math.sqrt(acc / atts.length),
+    minOffsetDb: minAtt - meanAtt,
+    maxOffsetDb: maxAtt - meanAtt,
+    peakToPeakDb: maxAtt - minAtt,
+  };
+}
+
+/**
+ * Peak-to-peak gate on the raw samples, before the mean is trusted.
+ * 0–15 dB: the signal is large, so anything over 0.05 dB is a connection.
+ * 16–24 dB: 0.10 dB.
+ * 25–41 dB: 0.20 dB. Thirty-two samples then put the standard error near
+ * 0.20/sqrt(32) ≈ 0.035 dB, inside the 0.05 dB law budget. Wider than that,
+ * the mean is the noise.
+ */
+export function meterSpreadLimitDb(code: number): number {
+  if (code <= 15) return 0.05;
+  if (code <= 24) return 0.1;
+  return 0.2;
+}
+
+export function meterSpreadIsNoisy(code: number, peakToPeakDb: number): boolean {
+  return peakToPeakDb > meterSpreadLimitDb(code);
+}
+
+/**
+ * A spot-check delta larger than this is a real frequency or level dependence.
+ * 0.05 dB is the measurement budget itself (meter plus the ~0.04 dB A2 step),
+ * so a 0.05 dB gate would flag scatter. 0.10 dB is twice that floor, still
+ * far under the 0.5 dB GERR/CERR the table removes, and above the 0.057 dB
+ * mix residual of a skipped 2 dB span. A flag means the single-condition
+ * table, not the interpolator, is the error. The spot reading is not stored.
+ */
+export const SPOT_TOLERANCE_DB = 0.1;
+
+export function spotCheckDelta(
+  tableErrDb: number,
+  spotErrDb: number,
+): { deltaDb: number; withinTolerance: boolean } {
+  const deltaDb = spotErrDb - tableErrDb;
+  return {
+    deltaDb,
+    withinTolerance: Math.abs(deltaDb) <= SPOT_TOLERANCE_DB,
+  };
 }
