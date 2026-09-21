@@ -55,6 +55,8 @@ R70,22k,1,Vgs driver,
 R73,1k,1,CV1 isolate,At U2D pin 14; not at the drain
 R80 R81,4.7k,2,I2C pull-up to +5 V,
 R82 R83,1k,2,PWM filter,
+R84,4.7k,1,D9 Vk reconstruction,Calibrated path only; jumper Vk here instead of U5B
+C32,100n film,1,D9 Vk reconstruction,With R84; ~340 Hz, inside a 5 ms attack
 S1,SPST,1,Sidechain HPF bypass,
 Misc,1590BB enclosure,1,Optional pedal box,
 Misc,knobs,5,Attack release threshold ratio makeup,

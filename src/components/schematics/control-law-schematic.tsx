@@ -19,7 +19,7 @@ export function ControlLawSchematic() {
       rev="G"
       title="Log converter, threshold, ratio, max GR, Vfrac"
       viewBox="0 0 1200 760"
-      notes="100 mV per dB is the analog bus from here to the interpolator. Glue Q1/Q2 together; leftover VT tempco is about 0.33 %/°C. Q1 is the transdiode in U3D feedback: Vlog = −VT ln(Iin/Iref) ≈ 3.00 mV/dB at U3D output. U4A scales that to 100 mV/dB. Threshold and ratio are applied in the dB domain so the digital attenuator is programmed in the same units it uses. RV5 0–2.6 V = 0–26 dB. RV7 +4.0 V = 40 dB max GR. U5A is a matched-resistor subtractor so a lagging MCU cannot open k past the far tap. VN is the 1 dB PWM staircase from the Nano. Odd-N GPIO inverts Vk so the analog mix triangles 0-1-0. VdB and VGR continue on the named ports rather than wrapping the sheet."
+      notes="100 mV per dB is the analog bus from here to the interpolator. Glue Q1/Q2 together; leftover VT tempco is about 0.33 %/°C. Q1 is the transdiode in U3D feedback: Vlog = −VT ln(Iin/Iref) ≈ 3.00 mV/dB at U3D output. U4A scales that to 100 mV/dB. Threshold and ratio are applied in the dB domain so the digital attenuator is programmed in the same units it uses. RV5 0–2.6 V = 0–26 dB. RV7 +4.0 V = 40 dB max GR. U5A is a matched-resistor subtractor so a lagging MCU cannot open k past the far tap. VN is the 1 dB PWM staircase from the Nano. Odd-N GPIO inverts Vk so the analog mix triangles 0-1-0 when the Vk jumper is on U5B. A stored PT2257 ladder table moves that jumper to D9 and holds D2 low. VdB and VGR continue on the named ports rather than wrapping the sheet."
     >
       <Txt x={24} y={28} size={12} weight="bold">
         Log amp

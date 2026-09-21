@@ -20,7 +20,7 @@ export function AudioPathSchematic() {
       rev="H"
       title="Audio path — input, dual PT2257 taps, makeup"
       viewBox="0 0 1200 640"
-      notes="Both PT2257 channels see the same buffered guitar signal. The IC is single-supply and internally biased near VDD/2, so C12–C15 are required. After those caps the interpolator works around analog ground. Keep the two channel layouts symmetrical; 0.5 dB of tracking error is already the IC limit. U1 = TL074 on ±9 V. Makeup U4D is non-inverting, gain 1 + RV2/R40 = 1 to 11. C11 is the RF shunt at U1A’s input, after R11. SCL/SDA leave between the analog rows so they never cut LIN or RIN. Keep PT2257 analog traces away from SCL/SDA."
+      notes="Both PT2257 channels see the same buffered guitar signal. The IC is single-supply and internally biased near VDD/2, so C12–C15 are required. After those caps the interpolator works around analog ground. Keep the two channel layouts symmetrical. Raw GERR and CERR are 0.5 dB typical; the bench ladder table removes that static error, so do not add a channel-gain trim unless you are skipping the table. U1 = TL074 on ±9 V. Makeup U4D is non-inverting, gain 1 + RV2/R40 = 1 to 11. C11 is the RF shunt at U1A’s input, after R11. SCL/SDA leave between the analog rows so they never cut LIN or RIN. Keep PT2257 analog traces away from SCL/SDA. VA and VB are the calibration meter points."
     >
       <Txt x={24} y={28} size={12} weight="bold">
         Input buffer

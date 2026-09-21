@@ -123,6 +123,7 @@ Build and Schematics pages.
 | GR | 0–40 dB continuous |
 | Interpolation error | ≤ 0.015 dB per tap |
 
-Limits that are real and not a reason to abandon the idea: PT2257 matching
-(0.5 dB), I²C attack speed, leftover JFET Cgd after CV1 (a single-point null),
-and the need to keep integer taps synchronized with analog k.
+Limits that are real and not a reason to abandon the idea: I²C attack speed,
+leftover JFET Cgd after CV1 (a single-point null), and the need to keep integer
+taps synchronized with analog k. PT2257 GERR and CERR (0.5 dB typical) are a
+static ladder error; the bench table in the firmware removes them.
